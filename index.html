@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de Horas</title>
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --bg:#0b1220; --card:#111b2e; --borda:#1e293b;
+    --txt:#e6edf7; --mut:#93a4bd; --pos:#22c55e; --neg:#ef4444; --azul:#3b82f6;
+  }
+  body{
+    margin:0; padding:28px 16px 70px;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    color:var(--txt);
+    background:radial-gradient(1100px 600px at 50% -15%, #16233d 0%, var(--bg) 55%) fixed;
+    min-height:100vh;
+  }
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:.3px}
+  .sub{margin:0 0 24px;color:var(--mut);font-size:.9rem}
+  h2{font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:0 0 14px;font-weight:600}
+
+  .painel{
+    background:var(--card);border:1px solid var(--borda);border-radius:14px;
+    padding:18px;margin-bottom:18px;
+  }
+
+  /* ---------- Card do saldo ---------- */
+  .saldo-card{
+    display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;
+    background:linear-gradient(135deg,#12203a,#0d1626);
+    border:1px solid var(--borda);border-left:6px solid #475569;
+    border-radius:16px;padding:22px 24px;margin-bottom:18px;transition:.25s;
+  }
+  .saldo-card.pos{border-left-color:var(--pos);box-shadow:0 0 0 1px rgba(34,197,94,.15),0 14px 34px -20px rgba(34,197,94,.8)}
+  .saldo-card.neg{border-left-color:var(--neg);box-shadow:0 0 0 1px rgba(239,68,68,.15),0 14px 34px -20px rgba(239,68,68,.8)}
+  .rotulo{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin-bottom:6px}
+  .saldo-valor{font-size:clamp(2.4rem,9vw,3.4rem);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .saldo-card.pos .saldo-valor{color:var(--pos);text-shadow:0 0 26px rgba(34,197,94,.4)}
+  .saldo-card.neg .saldo-valor{color:var(--neg);text-shadow:0 0 26px rgba(239,68,68,.4)}
+  .stats{display:flex;gap:26px;flex-wrap:wrap}
+  .stats strong{font-size:1.05rem;font-variant-numeric:tabular-nums}
+
+  /* ---------- Formulário ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  label{display:block;font-size:.76rem;color:var(--mut);margin-bottom:6px}
+  input[type=date],input[type=time]{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid #24334d;
+    background:#0b1524;color:var(--txt);font-size:.95rem;font-family:inherit;
+    color-scheme:dark;
+  }
+  input[type=date]:focus,input[type=time]:focus{
+    outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(59,130,246,.2)
+  }
+  .check{display:flex;align-items:center;gap:9px;margin-top:16px;font-size:.85rem;color:var(--mut);cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
+  .btn{
+    border:1px solid #2a3b58;background:#16233a;color:var(--txt);
+    padding:10px 16px;border-radius:10px;font-size:.88rem;cursor:pointer;
+    font-family:inherit;transition:.15s;
+  }
+  .btn:hover{background:#1d2d49;border-color:#3b527a}
+  .btn.primario{background:var(--azul);border-color:var(--azul);color:#fff;font-weight:600}
+  .btn.primario:hover{background:#2f74e0}
+  .btn.perigo{border-color:#4a2020;color:#fca5a5}
+  .btn.perigo:hover{background:#3a1717}
+  .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .oculto{display:none !important}
+
+  /* ---------- Tabela ---------- */
+  .tabela-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--borda)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:660px}
+  th{
+    text-align:left;padding:11px 12px;background:#0e1a2e;color:var(--mut);
+    font-size:.7rem;text-transform:uppercase;letter-spacing:.9px;font-weight:600;white-space:nowrap;
+  }
+  td{padding:11px 12px;border-top:1px solid #182741;white-space:nowrap;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:#101d33}
+  .forte{font-weight:700}
+  .pos{color:var(--pos)}
+  .neg{color:var(--neg)}
+  .tag{font-size:.62rem;background:#334155;color:#cbd5e1;padding:2px 6px;border-radius:5px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px}
+  .icone{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;opacity:.65}
+  .icone:hover{opacity:1;background:#1e2c45}
+  .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
+  .nota{color:var(--mut);font-size:.8rem;margin:12px 0 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>⏱ Banco de Horas</h1>
+    <p class="sub">Registre suas 4 batidas do dia e acompanhe seu saldo. Os dados ficam salvos neste navegador.</p>
+  </header>
+
+  <!-- SALDO EM DESTAQUE -->
+  <div class="saldo-card" id="saldoCard">
+    <div>
+      <span class="rotulo">Saldo do banco de horas</span>
+      <div class="saldo-valor" id="saldoValor">00:00</div>
+    </div>
+    <div class="stats">
+      <div><span class="rotulo">Trabalhado</span><strong id="statTrab">00:00</strong></div>
+      <div><span class="rotulo">Jornada exigida</span><strong id="statEsp">00:00</strong></div>
+      <div><span class="rotulo">Dias lançados</span><strong id="statDias">0</strong></div>
+    </div>
+  </div>
+
+  <!-- FORMULÁRIO -->
+  <section class="painel">
+    <h2 id="tituloForm">Novo lançamento</h2>
+    <form id="form" autocomplete="off">
+      <div class="grid">
+        <div><label for="data">Data</label><input type="date" id="data" required></div>
+        <div><label for="entrada">Entrada</label><input type="time" id="entrada" required></div>
+        <div><label for="saidaAlmoco">Saída almoço</label><input type="time" id="saidaAlmoco" required></div>
+        <div><label for="voltaAlmoco">Volta almoço</label><input type="time" id="voltaAlmoco" required></div>
+        <div><label for="saida">Saída</label><input type="time" id="saida" required></div>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="folga">
+        Folga / feriado (não exigir jornada neste dia)
+      </label>
+
+      <div class="acoes">
+        <button type="submit" class="btn primario" id="btnSalvar">Adicionar dia</button>
+        <button type="button" class="btn" id="btnAgora">⏱ Usar hora atual</button>
+        <button type="button" class="btn perigo oculto" id="btnCancelar">Cancelar edição</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- CONFIGURAÇÃO -->
+  <section class="painel">
+    <h2>Jornada diária esperada</h2>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <input type="time" id="jornada" value="08:00" style="max-width:140px">
+      <span style="color:var(--mut);font-size:.85rem">
+        Saldo do dia = horas trabalhadas − jornada esperada.
+      </span>
+    </div>
+  </section>
+
+  <!-- LANÇAMENTOS -->
+  <section class="painel">
+    <h2>Lançamentos</h2>
+    <div class="tabela-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Entrada</th>
+            <th>Saí. almoço</th>
+            <th>Volta</th>
+            <th>Saída</th>
+            <th>Trabalhado</th>
+            <th>Saldo do dia</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BACKUP -->
+  <section class="painel">
+    <h2>Backup dos dados</h2>
+    <div class="acoes" style="margin-top:0">
+      <button class="btn" id="btnExportar">⬇ Exportar arquivo</button>
+      <button class="btn" id="btnImportar">⬆ Importar arquivo</button>
+      <button class="btn perigo" id="btnLimpar">Apagar tudo</button>
+      <input type="file" id="arquivo" accept="application/json" class="oculto">
+    </div>
+    <p class="nota">
+      Os lançamentos ficam salvos no seu navegador (localStorage). Exporte o arquivo para guardar
+      um backup ou levar os dados para outro computador.
+    </p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const LS_REG = 'bancoHoras.registros.v1';
+  const LS_CFG = 'bancoHoras.config.v1';
+
+  let registros = [];
+  let config = { jornada: 480 };   // minutos
+  let editandoId = null;
+
+  /* ---------------- Utilidades ---------------- */
+  const hhmmParaMin = v => {
+    if(!v) return 0;
+    const [h, m] = v.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  const minParaHhmm = min => {
+    const a = Math.abs(Math.round(min));
+    return String(Math.floor(a / 60)).padStart(2, '0') + ':' + String(a % 60).padStart(2, '0');
+  };
+  const fmtSaldo = min => min === 0 ? '00:00' : (min > 0 ? '+' : '-') + minParaHhmm(min);
+  const fmtData = iso => {
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  };
+  const hojeISO = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' +
+           String(d.getMonth() + 1).padStart(2, '0') + '-' +
+           String(d.getDate()).padStart(2, '0');
+  };
+  const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : String(Date.now()) + Math.random().toString(16).slice(2);
+
+  function trabalhadoMin(r){
+    let p1 = hhmmParaMin(r.saidaAlmoco) - hhmmParaMin(r.entrada);
+    if(p1 < 0) p1 += 1440;                       // turno que virou o dia
+    let p2 = hhmmParaMin(r.saida) - hhmmParaMin(r.voltaAlmoco);
+    if(p2 < 0) p2 += 1440;
+    return p1 + p2;
+  }
+
+  /* ---------------- Persistência ---------------- */
+  function carregar(){
+    try{
+      const r = JSON.parse(localStorage.getItem(LS_REG));
+      if(Array.isArray(r)) registros = r;
+    }catch(e){ registros = []; }
+
+    try{
+      const c = JSON.parse(localStorage.getItem(LS_CFG));
+      if(c && typeof c.jornada === 'number' && c.jornada >= 0) config = c;
+    }catch(e){}
+  }
+  function persistir(){
+    localStorage.setItem(LS_REG, JSON.stringify(registros));
+    localStorage.setItem(LS_CFG, JSON.stringify(config));
+  }
+
+  /* ---------------- Render ---------------- */
+  function render(){
+    let totalTrab = 0, totalEsp = 0;
+    registros.forEach(r => {
+      totalTrab += trabalhadoMin(r);
+      totalEsp  += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+    });
+    const saldo = totalTrab - totalEsp;
+
+    const card = $('saldoCard');
+    card.classList.remove('pos', 'neg');
+    if(saldo > 0) card.classList.add('pos');
+    else if(saldo < 0) card.classList.add('neg');
+
+    $('saldoValor').textContent = fmtSaldo(saldo);
+    $('statTrab').textContent   = minParaHhmm(totalTrab);
+    $('statEsp').textContent    = minParaHhmm(totalEsp);
+    $('statDias').textContent   = registros.length;
+
+    const ordenados = [...registros].sort((a, b) => b.data.localeCompare(a.data));
+    const corpo = $('corpo');
+
+    if(!ordenados.length){
+      corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum lançamento ainda. Adicione o primeiro dia acima. 👆</td></tr>';
+      return;
+    }
+
+    corpo.innerHTML = ordenados.map(r => {
+      const trab = trabalhadoMin(r);
+      const esp  = (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+      const s    = trab - esp;
+      const cls  = s > 0 ? 'pos' : s < 0 ? 'neg' : '';
+      return `<tr>
+        <td>${fmtData(r.data)}${r.folga ? '<span class="tag">folga</span>' : ''}</td>
+        <td>${r.entrada}</td>
+        <td>${r.saidaAlmoco}</td>
+        <td>${r.voltaAlmoco}</td>
+        <td>${r.saida}</td>
+        <td>${minParaHhmm(trab)}</td>
+        <td class="forte ${cls}">${fmtSaldo(s)}</td>
+        <td>
+          <button class="icone" data-editar="${r.id}" title="Editar">✏️</button>
+          <button class="icone" data-excluir="${r.id}" title="Excluir">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ---------------- Formulário ---------------- */
+  function resetForm(){
+    editandoId = null;
+    $('form').reset();
+    $('data').value = hojeISO();
+    $('folga').checked = false;
+    $('tituloForm').textContent = 'Novo lançamento';
+    $('btnSalvar').textContent = 'Adicionar dia';
+    $('btnCancelar').classList.add('oculto');
+  }
+
+  $('form').addEventListener('submit', e => {
+    e.preventDefault();
+
+    const data         = $('data').value;
+    const entrada      = $('entrada').value;
+    const saidaAlmoco  = $('saidaAlmoco').value;
+    const voltaAlmoco  = $('voltaAlmoco').value;
+    const saida        = $('saida').value;
+
+    if(!data || !entrada || !saidaAlmoco || !voltaAlmoco || !saida){
+      alert('Preencha a data e as 4 batidas de ponto.');
+      return;
+    }
+
+    const folga = $('folga').checked;
+
+    if(editandoId){
+      const i = registros.findIndex(r => r.id === editandoId);
+      if(i > -1){
+        registros[i] = {
+          id: editandoId, data, entrada, saidaAlmoco, voltaAlmoco, saida,
+          folga, esperado: folga ? 0 : config.jornada
+        };
+      }
+      editandoId = null;
+    } else {
+      const dup = registros.find(r => r.data === data);
+      if(dup && !confirm('Já existe um lançamento nessa data. Deseja substituí-lo?')) return;
+      if(dup) registros = registros.filter(r => r.data !== data);
+
+      registros.push({
+        id: uid(), data, entrada, saidaAlmoco, voltaAlmoco, saida,
+        folga, esperado: folga ? 0 : config.jornada
+      });
+    }
+
+    persistir();
+    resetForm();
+    render();
+  });
+
+  $('btnAgora').addEventListener('click', () => {
+    if(!$('data').value) $('data').value = hojeISO();
+    const d = new Date();
+    const hhmm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    for(const id of ['entrada', 'saidaAlmoco', 'voltaAlmoco', 'saida']){
+      if(!$(id).value){ $(id).value = hhmm; return; }
+    }
+  });
+
+  $('btnCancelar').addEventListener('click', () => { resetForm(); });
+
+  /* ---------------- Ações da tabela ---------------- */
+  $('corpo').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+
+    const idEd = btn.dataset.editar;
+    const idEx = btn.dataset.excluir;
+
+    if(idEd){
+      const r = registros.find(x => x.id === idEd);
+      if(!r) return;
+      editandoId = idEd;
+      $('data').value        = r.data;
+      $('entrada').value     = r.entrada;
+      $('saidaAlmoco').value = r.saidaAlmoco;
+      $('voltaAlmoco').value = r.voltaAlmoco;
+      $('saida').value       = r.saida;
+      $('folga').checked     = !!r.folga;
+      $('tituloForm').textContent = 'Editando lançamento de ' + fmtData(r.data);
+      $('btnSalvar').textContent  = 'Salvar alterações';
+      $('btnCancelar').classList.remove('oculto');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if(idEx){
+      const r = registros.find(x => x.id === idEx);
+      if(r && confirm('Excluir o lançamento de ' + fmtData(r.data) + '?')){
+        registros = registros.filter(x => x.id !== idEx);
+        if(editandoId === idEx) resetForm();
+        persistir();
+        render();
+      }
+    }
+  });
+
+  /* ---------------- Jornada padrão ---------------- */
+  $('jornada').addEventListener('change', e => {
+    if(!e.target.value){ e.target.value = minParaHhmm(config.jornada); return; }
+    config.jornada = hhmmParaMin(e.target.value);
+    persistir();
+  });
+
+  /* ---------------- Backup ---------------- */
+  $('btnExportar').addEventListener('click', () => {
+    const dados = {
+      app: 'banco-de-horas', versao: 1,
+      exportadoEm: new Date().toISOString(),
+      config, registros
+    };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'banco-de-horas-' + hojeISO() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  $('btnImportar').addEventListener('click', () => $('arquivo').click());
+
+  $('arquivo').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const dados = JSON.parse(reader.result);
+        const regs = Array.isArray(dados) ? dados : dados.registros;
+        if(!Array.isArray(regs)) throw new Error('formato inválido');
+
+        if(!confirm('Isso substituirá os lançamentos atuais pelos do arquivo. Continuar?')) return;
+
+        registros = regs.filter(r => r && r.data).map(r => ({
+          id: r.id || uid(),
+          data: r.data,
+          entrada: r.entrada,
+          saidaAlmoco: r.saidaAlmoco,
+          voltaAlmoco: r.voltaAlmoco,
+          saida: r.saida,
+          folga: !!r.folga,
+          esperado: typeof r.esperado === 'number' ? r.esperado : (r.folga ? 0 : config.jornada)
+        }));
+
+        if(dados.config && typeof dados.config.jornada === 'number'){
+          config = dados.config;
+          $('jornada').value = minParaHhmm(config.jornada);
+        }
+
+        persistir();
+        render();
+        alert('Dados importados com sucesso!');
+      }catch(err){
+        alert('Arquivo inválido.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  $('btnLimpar').addEventListener('click', () => {
+    if(!registros.length) return;
+    if(confirm('Apagar TODOS os lançamentos? Essa ação não pode ser desfeita.')){
+      registros = [];
+      persistir();
+      render();
+    }
+  });
+
+  /* ---------------- Inicialização ---------------- */
+  carregar();
+  $('jornada').value = minParaHhmm(config.jornada);
+  resetForm();
+  render();
+})();
+</script>
+</body>
+</html>
