@@ -74,9 +74,8 @@
 
   /* ---------- Formulários ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
   label{display:block;font-size:.76rem;color:var(--mut);margin-bottom:6px}
-  input[type=date],input[type=time],input[type=text]{
+  input[type=date],input[type=time]{
     width:100%;padding:10px 12px;border-radius:10px;
     border:1px solid var(--borda-input);
     background:var(--input);color:var(--txt);font-size:.95rem;font-family:inherit;
@@ -88,7 +87,6 @@
   input:focus{
     outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(59,130,246,.2)
   }
-  input::placeholder{color:var(--mut);opacity:.65}
   .check{display:flex;align-items:center;gap:9px;margin-top:16px;font-size:.85rem;color:var(--mut);cursor:pointer}
   .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
   .btn{
@@ -159,21 +157,6 @@
       <span id="iconeTema">🌙</span><span id="txtTema">Modo claro</span>
     </button>
   </header>
-
-  <!-- DADOS PESSOAIS -->
-  <section class="painel">
-    <h2>Informações pessoais</h2>
-    <div class="grid-2">
-      <div><label for="nome">Nome completo</label>
-        <input type="text" id="nome" placeholder="Ex.: João da Silva"></div>
-      <div><label for="cargo">Cargo</label>
-        <input type="text" id="cargo" placeholder="Ex.: Analista de Sistemas"></div>
-      <div><label for="matricula">Matrícula</label>
-        <input type="text" id="matricula" placeholder="Ex.: 123456"></div>
-      <div><label for="cpf">CPF</label>
-        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14"></div>
-    </div>
-  </section>
 
   <!-- HORÁRIOS PREVISTOS -->
   <section class="painel">
@@ -268,23 +251,35 @@
       <input type="file" id="arquivo" accept="application/json" class="oculto">
     </div>
     <p class="nota">
-      Os lançamentos e dados pessoais ficam salvos no seu navegador (localStorage).
+      Os lançamentos ficam salvos no seu navegador (localStorage).
       Exporte o arquivo para guardar um backup ou levar os dados para outro computador.
     </p>
   </section>
 
 </div>
 
-<!-- MODAL DE ALERTA COM GIF -->
+<!-- MODAL 1: PONTO FORA DO HORÁRIO -->
 <div id="alertaGif" class="modal oculto">
   <div class="modal-conteudo">
-    <!-- GIF HOSPEDADO NO TENOR -->
-    <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta de ponto fora do horário" id="gifAlerta">
+    <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta de ponto fora do horário">
     <h3>⏰ Ponto fora do horário previsto!</h3>
     <p id="textoAlerta">Você registrou um horário diferente do previsto. Deseja salvar mesmo assim?</p>
     <div class="acoes" style="justify-content:center">
       <button class="btn primario" id="btnSalvarForcado">Salvar mesmo assim</button>
       <button class="btn" id="btnFecharAlerta">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2: HORAS EXTRAS (JORNADA EXCEDIDA) -->
+<div id="alertaExtra" class="modal oculto">
+  <div class="modal-conteudo">
+    <img src="https://media1.tenor.com/m/vK60kNp1grIAAAAC/treadmill-treat.gif" alt="Alerta de jornada excedida">
+    <h3>🏃 Você trabalhou mais que o previsto!</h3>
+    <p id="textoExtra">Você ultrapassou a jornada diária esperada. Esse tempo extra será somado como saldo positivo.</p>
+    <div class="acoes" style="justify-content:center">
+      <button class="btn primario" id="btnExtraOk">Entendi, salvar</button>
+      <button class="btn" id="btnExtraCancelar">Cancelar</button>
     </div>
   </div>
 </div>
@@ -296,20 +291,19 @@
   const $ = id => document.getElementById(id);
   const LS_REG = 'bancoHoras.registros.v1';
   const LS_CFG = 'bancoHoras.config.v1';
-  const LS_PER = 'bancoHoras.pessoal.v1';
   const LS_TEMA = 'bancoHoras.tema.v1';
 
   let registros = [];
-  let config = { 
+  let config = {
     jornada: 480, // minutos
     entradaPrev: '08:00',
     saidaAlmocoPrev: '12:00',
     voltaAlmocoPrev: '13:00',
     saidaPrev: '17:00'
   };
-  let pessoal = { nome:'', cargo:'', matricula:'', cpf:'' };
   let editandoId = null;
-  let salvarForcado = false;
+  let salvarForcado = false;    // true após confirmar ponto fora do horário
+  let extraConfirmado = false;  // true após confirmar jornada excedida
 
   /* ---------------- Utilidades ---------------- */
   const hhmmParaMin = v => {
@@ -344,15 +338,6 @@
     return p1 + p2;
   }
 
-  /* ---------------- Máscara de CPF ---------------- */
-  function mascaraCPF(v){
-    v = v.replace(/\D/g,'').slice(0,11);
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
-    v = v.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
-    v = v.replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
-    return v;
-  }
-
   /* ---------------- Persistência ---------------- */
   function carregar(){
     try{
@@ -365,12 +350,6 @@
       if(c && typeof c === 'object') config = Object.assign(config, c);
     }catch(e){}
 
-    try{
-      const p = JSON.parse(localStorage.getItem(LS_PER));
-      if(p && typeof p === 'object') pessoal = Object.assign(pessoal, p);
-    }catch(e){}
-
-    // Tema
     let tema = localStorage.getItem(LS_TEMA);
     if(tema !== 'claro' && tema !== 'escuro'){
       tema = window.matchMedia &&
@@ -382,7 +361,6 @@
   function persistir(){
     localStorage.setItem(LS_REG, JSON.stringify(registros));
     localStorage.setItem(LS_CFG, JSON.stringify(config));
-    localStorage.setItem(LS_PER, JSON.stringify(pessoal));
   }
 
   /* ---------------- Tema ---------------- */
@@ -396,25 +374,6 @@
   $('btnTema').addEventListener('click', () => {
     const atual = document.documentElement.getAttribute('data-tema');
     aplicarTema(atual === 'claro' ? 'escuro' : 'claro');
-  });
-
-  /* ---------------- Dados pessoais ---------------- */
-  ['nome','cargo','matricula','cpf'].forEach(id => {
-    $(id).addEventListener('input', () => {
-      pessoal[id] = $(id).value;
-      persistir();
-    });
-  });
-  $('cpf').addEventListener('input', e => {
-    const pos = e.target.selectionStart;
-    const antes = e.target.value;
-    e.target.value = mascaraCPF(antes);
-    pessoal.cpf = e.target.value;
-    persistir();
-    try{
-      const diff = e.target.value.length - antes.length;
-      e.target.setSelectionRange(pos + diff, pos + diff);
-    }catch(_){}
   });
 
   /* ---------------- Horários Previstos (Config) ---------------- */
@@ -455,7 +414,7 @@
     }
   });
 
-  /* ---------------- Validação de Horários ---------------- */
+  /* ---------------- Validação: Ponto fora do horário ---------------- */
   function verificarHorarios(){
     let alerta = false;
     let detalhes = [];
@@ -482,7 +441,6 @@
       detalhes.push(`Volta almoço: registrado ${voltaAlmoco} (previsto ${config.voltaAlmocoPrev})`);
     }
 
-    // Verifica se o almoço tem exatamente 1 hora
     const diffAlmoco = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
     if(Math.abs(diffAlmoco) !== 60 && Math.abs(diffAlmoco) !== (1440 - 60)){
       alerta = true;
@@ -496,7 +454,30 @@
     return alerta;
   }
 
-  /* ---------------- Modal GIF ---------------- */
+  /* ---------------- Validação: Jornada excedida ---------------- */
+  function verificarExtras(){
+    if($('folga').checked) return false; // folga não conta extra
+
+    const trab = trabalhadoMin({
+      entrada: $('entrada').value,
+      saidaAlmoco: $('saidaAlmoco').value,
+      voltaAlmoco: $('voltaAlmoco').value,
+      saida: $('saida').value
+    });
+
+    if(trab > config.jornada){
+      const extra = trab - config.jornada;
+      $('textoExtra').innerHTML =
+        `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
+        `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
+        `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra será somado ao seu banco de horas.`;
+      $('alertaExtra').classList.remove('oculto');
+      return true;
+    }
+    return false;
+  }
+
+  /* ---------------- Modal 1: Ponto fora do horário ---------------- */
   $('btnFecharAlerta').addEventListener('click', () => {
     $('alertaGif').classList.add('oculto');
     salvarForcado = false;
@@ -504,8 +485,18 @@
   $('btnSalvarForcado').addEventListener('click', () => {
     $('alertaGif').classList.add('oculto');
     salvarForcado = true;
-    // Dispara o submit do formulário
     $('form').dispatchEvent(new Event('submit'));
+  });
+
+  /* ---------------- Modal 2: Jornada excedida ---------------- */
+  $('btnExtraOk').addEventListener('click', () => {
+    $('alertaExtra').classList.add('oculto');
+    extraConfirmado = true;
+    $('form').dispatchEvent(new Event('submit'));
+  });
+  $('btnExtraCancelar').addEventListener('click', () => {
+    $('alertaExtra').classList.add('oculto');
+    extraConfirmado = false;
   });
 
   /* ---------------- Render ---------------- */
@@ -566,6 +557,7 @@
     $('btnSalvar').textContent = 'Adicionar dia';
     $('btnCancelar').classList.add('oculto');
     salvarForcado = false;
+    extraConfirmado = false;
   }
 
   $('form').addEventListener('submit', e => {
@@ -582,11 +574,14 @@
       return;
     }
 
-    // Se não for salvamento forçado, verifica horários
+    // Etapa 1: Verifica ponto fora do horário
     if(!salvarForcado){
-      if(verificarHorarios()){
-        return; // O modal será exibido e o submit é interrompido
-      }
+      if(verificarHorarios()) return;
+    }
+
+    // Etapa 2: Verifica jornada excedida
+    if(!extraConfirmado){
+      if(verificarExtras()) return;
     }
 
     const folga = $('folga').checked;
@@ -672,9 +667,9 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 3,
+      app: 'banco-de-horas', versao: 4,
       exportadoEm: new Date().toISOString(),
-      pessoal, config, registros
+      config, registros
     };
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -699,7 +694,7 @@
         const regs = Array.isArray(dados) ? dados : dados.registros;
         if(!Array.isArray(regs)) throw new Error('formato inválido');
 
-        if(!confirm('Isso substituirá os lançamentos e dados pessoais atuais pelos do arquivo. Continuar?')) return;
+        if(!confirm('Isso substituirá os lançamentos atuais pelos do arquivo. Continuar?')) return;
 
         registros = regs.filter(r => r && r.data).map(r => ({
           id: r.id || uid(),
@@ -721,14 +716,6 @@
           $('saidaPrev').value = config.saidaPrev || '17:00';
         }
 
-        if(dados.pessoal && typeof dados.pessoal === 'object'){
-          pessoal = Object.assign({nome:'',cargo:'',matricula:'',cpf:''}, dados.pessoal);
-          $('nome').value = pessoal.nome || '';
-          $('cargo').value = pessoal.cargo || '';
-          $('matricula').value = pessoal.matricula || '';
-          $('cpf').value = pessoal.cpf || '';
-        }
-
         persistir();
         render();
         alert('Dados importados com sucesso!');
@@ -741,15 +728,12 @@
   });
 
   $('btnLimpar').addEventListener('click', () => {
-    if(!registros.length && !pessoal.nome && !pessoal.cargo){
+    if(!registros.length){
       alert('Não há dados para apagar.');
       return;
     }
-    if(confirm('Apagar TODOS os lançamentos e informações pessoais? Essa ação não pode ser desfeita.')){
+    if(confirm('Apagar TODOS os lançamentos? Essa ação não pode ser desfeita.')){
       registros = [];
-      pessoal = {nome:'', cargo:'', matricula:'', cpf:''};
-      $('nome').value = ''; $('cargo').value = '';
-      $('matricula').value = ''; $('cpf').value = '';
       persistir();
       render();
     }
@@ -757,11 +741,6 @@
 
   /* ---------------- Inicialização ---------------- */
   carregar();
-
-  $('nome').value      = pessoal.nome || '';
-  $('cargo').value     = pessoal.cargo || '';
-  $('matricula').value = pessoal.matricula || '';
-  $('cpf').value       = pessoal.cpf || '';
 
   $('jornada').value         = minParaHhmm(config.jornada);
   $('entradaPrev').value     = config.entradaPrev || '08:00';
