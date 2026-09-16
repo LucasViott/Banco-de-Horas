@@ -7,7 +7,6 @@
 <style>
   *{box-sizing:border-box}
 
-  /* ---------- Tema escuro (padrão) ---------- */
   html[data-tema="escuro"]{
     --bg:#0b1220; --bg-glow:#16233d;
     --card:#111b2e; --card2:#0e1a2e; --input:#0b1524;
@@ -15,10 +14,9 @@
     --txt:#e6edf7; --mut:#93a4bd;
     --pos:#22c55e; --neg:#ef4444; --azul:#3b82f6;
     --hover:#101d33; --hover-btn:#1d2d49;
-    --verde-grad1:#22c55e; --verde-grad2:#16a34a;
+    --laranja:#f59e0b; --roxo:#8b5cf6;
   }
 
-  /* ---------- Tema claro ---------- */
   html[data-tema="claro"]{
     --bg:#eef2f8; --bg-glow:#dbe6f7;
     --card:#ffffff; --card2:#f4f7fc; --input:#ffffff;
@@ -26,7 +24,7 @@
     --txt:#152238; --mut:#5b6b83;
     --pos:#15803d; --neg:#dc2626; --azul:#2563eb;
     --hover:#f1f5fb; --hover-btn:#e6edf7;
-    --verde-grad1:#22c55e; --verde-grad2:#16a34a;
+    --laranja:#d97706; --roxo:#7c3aed;
   }
 
   body{
@@ -49,7 +47,6 @@
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
 
-  /* ---------- Grid 2 colunas ---------- */
   .layout-2col{
     display:grid;
     grid-template-columns: minmax(0, 1fr) 340px;
@@ -58,8 +55,6 @@
   }
   .col-esquerda{min-width:0}
   .col-direita{min-width:0;position:sticky;top:20px}
-
-  /* Painéis da coluna direita mais compactos */
   .col-direita .painel{padding:16px}
   .col-direita .painel:last-child{margin-bottom:0}
   .col-direita .grid{grid-template-columns:1fr;gap:10px}
@@ -70,7 +65,6 @@
     .col-direita{position:static}
   }
 
-  /* ---------- Botão de tema ---------- */
   .btn-tema{
     display:inline-flex;align-items:center;gap:8px;
     border:1px solid var(--borda-input);background:var(--card);color:var(--txt);
@@ -79,7 +73,7 @@
   }
   .btn-tema:hover{background:var(--hover-btn)}
 
-  /* ---------- Card do saldo (DESTAQUE SUPERIOR) ---------- */
+  /* ---------- Card do saldo ---------- */
   .saldo-card{
     display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;
     background:linear-gradient(135deg,var(--card2),var(--card));
@@ -95,81 +89,14 @@
   .stats{display:flex;gap:26px;flex-wrap:wrap}
   .stats strong{font-size:1.05rem;font-variant-numeric:tabular-nums}
 
-  /* ---------- Painel BATER PONTO ---------- */
-  .bater-painel{
-    background:linear-gradient(135deg,var(--card2),var(--card));
-    border:1px solid var(--borda);
-    border-radius:18px;
-    padding:30px 24px 26px;
-    margin-bottom:18px;
-    text-align:center;
+  /* ---------- Formulário ---------- */
+  .form-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .form-header h2{margin:0}
+  .agora{
+    font-size:.72rem;color:var(--mut);letter-spacing:.5px;
+    padding:4px 10px;border-radius:999px;background:var(--card2);
+    border:1px solid var(--borda);font-variant-numeric:tabular-nums;
   }
-  .data-longa{
-    color:var(--mut);font-size:.95rem;margin-bottom:6px;letter-spacing:.3px;
-  }
-  .relogio-grande{
-    font-size:clamp(3rem,11vw,4.2rem);
-    font-weight:800;
-    font-variant-numeric:tabular-nums;
-    color:var(--txt);
-    letter-spacing:2px;
-    line-height:1;
-    margin:0 0 22px;
-  }
-  .btn-bater{
-    background:linear-gradient(135deg,var(--verde-grad1),var(--verde-grad2));
-    color:#fff;border:none;
-    padding:18px 42px;
-    font-size:1.15rem;font-weight:700;
-    border-radius:999px;cursor:pointer;
-    transition:.2s;
-    box-shadow:0 10px 30px -10px rgba(34,197,94,.6);
-    font-family:inherit;letter-spacing:.5px;
-    display:inline-flex;align-items:center;gap:10px;
-  }
-  .btn-bater:hover:not(:disabled){
-    transform:translateY(-2px);
-    box-shadow:0 16px 38px -10px rgba(34,197,94,.8);
-  }
-  .btn-bater:active:not(:disabled){transform:translateY(0);}
-  .btn-bater:disabled{
-    opacity:.6;cursor:not-allowed;box-shadow:none;
-    background:var(--card2);color:var(--mut);
-    border:1px solid var(--borda-input);
-  }
-  .proximo-label{
-    margin-top:16px;color:var(--mut);font-size:.9rem;
-  }
-  .proximo-label strong{color:var(--txt);}
-  .prev-hint{opacity:.7;font-size:.88em;}
-
-  .pontos-lista{
-    margin-top:24px;
-    display:flex;flex-direction:column;gap:8px;
-    text-align:left;
-  }
-  .ponto-linha{
-    display:grid;
-    grid-template-columns:30px 1fr auto;
-    align-items:center;gap:12px;
-    padding:11px 14px;
-    background:var(--card2);
-    border:1px solid var(--borda);
-    border-radius:10px;
-    transition:.2s;
-  }
-  .ponto-linha.completo{
-    border-color:rgba(34,197,94,.4);
-    background:rgba(34,197,94,.06);
-  }
-  .ponto-status{font-size:1rem;text-align:center;}
-  .ponto-nome{font-size:.9rem;color:var(--txt);}
-  .ponto-linha input[type=time]{
-    width:118px;padding:7px 10px;font-size:.85rem;
-    background:var(--input);
-  }
-
-  /* ---------- Formulários ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
   label{display:block;font-size:.76rem;color:var(--mut);margin-bottom:6px}
   input[type=date],input[type=time]{
@@ -182,7 +109,7 @@
   html[data-tema="escuro"] input{color-scheme:dark}
   html[data-tema="claro"] input{color-scheme:light}
   input:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
-  .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer}
+  .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer;margin-top:14px}
   .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
   .btn{
     border:1px solid var(--borda-input);background:var(--card2);color:var(--txt);
@@ -198,6 +125,80 @@
   .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
   .oculto{display:none !important}
 
+  /* ---------- CALENDÁRIO ---------- */
+  .cal-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:14px;gap:8px;
+  }
+  .cal-titulo{
+    font-size:.98rem;font-weight:700;color:var(--txt);
+    text-align:center;flex:1;letter-spacing:.3px;
+  }
+  .cal-nav{
+    border:1px solid var(--borda-input);background:var(--card2);color:var(--txt);
+    width:34px;height:34px;border-radius:10px;cursor:pointer;
+    font-size:1.1rem;line-height:1;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .cal-nav:hover{background:var(--hover-btn)}
+  .cal-hoje{
+    border:1px solid var(--borda-input);background:var(--card2);color:var(--txt);
+    padding:0 12px;height:34px;border-radius:10px;cursor:pointer;
+    font-size:.78rem;font-family:inherit;font-weight:600;transition:.15s;
+  }
+  .cal-hoje:hover{background:var(--hover-btn)}
+
+  .cal-diasSemana{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;
+  }
+  .cal-diasSemana div{
+    text-align:center;font-size:.66rem;color:var(--mut);
+    text-transform:uppercase;letter-spacing:.6px;font-weight:600;
+    padding:4px 0;
+  }
+  .cal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
+  }
+  .cal-dia{
+    position:relative;
+    aspect-ratio:1;
+    border:1px solid var(--borda);
+    background:var(--card2);
+    border-radius:8px;
+    color:var(--txt);
+    font-family:inherit;
+    font-size:.82rem;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s;
+    font-variant-numeric:tabular-nums;
+    padding:0;
+  }
+  .cal-dia.vazio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+  .cal-dia:not(.vazio):hover{background:var(--hover-btn);transform:scale(1.05)}
+  .cal-dia.completo{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.12);color:var(--pos)}
+  .cal-dia.incompleto{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.12);color:var(--laranja)}
+  .cal-dia.folga{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.12);color:var(--roxo)}
+  .cal-dia.hoje::after{
+    content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--azul);
+  }
+  .cal-dia.selecionado{
+    outline:2px solid var(--azul);outline-offset:1px;font-weight:700;
+  }
+  .cal-legenda{
+    display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;
+    font-size:.74rem;color:var(--mut);
+  }
+  .cal-legenda span{display:inline-flex;align-items:center;gap:6px}
+  .cal-legenda i{
+    width:12px;height:12px;border-radius:4px;display:inline-block;
+    border:1px solid var(--borda);
+  }
+  .lg-completo{background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.5)!important}
+  .lg-incompleto{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.5)!important}
+  .lg-folga{background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5)!important}
+
   /* ---------- Tabela ---------- */
   .tabela-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--borda)}
   table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
@@ -207,12 +208,13 @@
   }
   td{padding:11px 12px;border-top:1px solid var(--borda);white-space:nowrap;font-variant-numeric:tabular-nums}
   tbody tr:hover{background:var(--hover)}
+  tbody tr.clickable{cursor:pointer}
   .forte{font-weight:700}
   .pos{color:var(--pos)}
   .neg{color:var(--neg)}
   .mut{color:var(--mut);opacity:.65}
   .tag{font-size:.62rem;background:#64748b;color:#fff;padding:2px 6px;border-radius:5px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px}
-  .tag.andamento{background:#d97706}
+  .tag.andamento{background:var(--laranja)}
   .icone{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;opacity:.65;color:var(--txt)}
   .icone:hover{opacity:1;background:var(--hover-btn)}
   .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
@@ -248,14 +250,14 @@
   <header class="topo">
     <div>
       <h1>⏱ Banco de Horas</h1>
-      <p class="sub">Bata seu ponto ao longo do dia. Cada registro é salvo na hora, neste navegador.</p>
+      <p class="sub">Registre e consulte seus pontos. Os dados ficam salvos neste navegador.</p>
     </div>
     <button class="btn-tema" id="btnTema" type="button">
       <span id="iconeTema">🌙</span><span id="txtTema">Modo claro</span>
     </button>
   </header>
 
-  <!-- SALDO EM DESTAQUE (TOPO) -->
+  <!-- SALDO EM DESTAQUE -->
   <div class="saldo-card" id="saldoCard">
     <div>
       <span class="rotulo">Saldo do banco de horas</span>
@@ -269,47 +271,58 @@
     </div>
   </div>
 
-  <!-- LAYOUT 2 COLUNAS -->
   <div class="layout-2col">
 
-    <!-- COLUNA ESQUERDA: BATER PONTO + HISTÓRICO -->
+    <!-- COLUNA ESQUERDA -->
     <div class="col-esquerda">
 
-      <!-- BATER PONTO -->
-      <section class="bater-painel">
-        <div class="data-longa" id="dataLonga"></div>
-        <div class="relogio-grande" id="relogioGrande">00:00:00</div>
-
-        <button class="btn-bater" id="btnBater" type="button">⏱ Bater ponto</button>
-        <div class="proximo-label">Próximo: <span id="proximoNome">Entrada</span></div>
-
-        <div class="pontos-lista">
-          <div class="ponto-linha" data-row="entrada">
-            <span class="ponto-status" data-status="entrada">⬜</span>
-            <span class="ponto-nome">Entrada</span>
-            <input type="time" class="ponto-input" data-campo="entrada">
-          </div>
-          <div class="ponto-linha" data-row="saidaAlmoco">
-            <span class="ponto-status" data-status="saidaAlmoco">⬜</span>
-            <span class="ponto-nome">Saída almoço</span>
-            <input type="time" class="ponto-input" data-campo="saidaAlmoco">
-          </div>
-          <div class="ponto-linha" data-row="voltaAlmoco">
-            <span class="ponto-status" data-status="voltaAlmoco">⬜</span>
-            <span class="ponto-nome">Volta almoço</span>
-            <input type="time" class="ponto-input" data-campo="voltaAlmoco">
-          </div>
-          <div class="ponto-linha" data-row="saida">
-            <span class="ponto-status" data-status="saida">⬜</span>
-            <span class="ponto-nome">Saída</span>
-            <input type="time" class="ponto-input" data-campo="saida">
-          </div>
+      <!-- FORMULÁRIO -->
+      <section class="painel">
+        <div class="form-header">
+          <h2 id="tituloForm">Novo lançamento</h2>
+          <div class="agora" id="agoraRef">--:--:--</div>
         </div>
+        <form id="form" autocomplete="off">
+          <div class="grid">
+            <div><label for="data">Data</label><input type="date" id="data" required></div>
+            <div><label for="entrada">Entrada</label><input type="time" id="entrada"></div>
+            <div><label for="saidaAlmoco">Saída almoço</label><input type="time" id="saidaAlmoco"></div>
+            <div><label for="voltaAlmoco">Volta almoço</label><input type="time" id="voltaAlmoco"></div>
+            <div><label for="saida">Saída</label><input type="time" id="saida"></div>
+          </div>
 
-        <label class="check" style="justify-content:center;margin-top:18px">
-          <input type="checkbox" id="hojeFolga">
-          Folga / feriado hoje
-        </label>
+          <label class="check">
+            <input type="checkbox" id="folga">
+            Folga / feriado (não exigir jornada neste dia)
+          </label>
+
+          <div class="acoes">
+            <button type="submit" class="btn primario" id="btnSalvar">Salvar lançamento</button>
+            <button type="button" class="btn" id="btnNovo">Novo (limpar)</button>
+            <button type="button" class="btn perigo oculto" id="btnExcluir">Excluir este dia</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- CALENDÁRIO -->
+      <section class="painel">
+        <h2>Calendário</h2>
+        <div class="cal-header">
+          <button type="button" class="cal-nav" id="calPrev" title="Mês anterior">‹</button>
+          <div class="cal-titulo" id="calTitulo">—</div>
+          <button type="button" class="cal-nav" id="calNext" title="Próximo mês">›</button>
+          <button type="button" class="cal-hoje" id="calHoje" title="Ir para hoje">Hoje</button>
+        </div>
+        <div class="cal-diasSemana">
+          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legenda">
+          <span><i class="lg lg-completo"></i>Completo</span>
+          <span><i class="lg lg-incompleto"></i>Incompleto</span>
+          <span><i class="lg lg-folga"></i>Folga</span>
+          <span style="margin-left:auto;opacity:.75">Clique em um dia para editar</span>
+        </div>
       </section>
 
       <!-- HISTÓRICO -->
@@ -332,15 +345,14 @@
             <tbody id="corpo"></tbody>
           </table>
         </div>
-        <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias em andamento aparecem em laranja.</p>
+        <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias parciais aparecem em laranja. Clique em uma linha para editar.</p>
       </section>
 
     </div>
 
-    <!-- COLUNA DIREITA: HORÁRIOS PREVISTOS + JORNADA + BACKUP -->
+    <!-- COLUNA DIREITA -->
     <aside class="col-direita">
 
-      <!-- HORÁRIOS PREVISTOS -->
       <section class="painel">
         <h2>Horários previstos</h2>
         <div class="grid">
@@ -352,7 +364,6 @@
         <p class="nota">Almoço de 1 hora automático (ex.: 12:00 → 13:00).</p>
       </section>
 
-      <!-- JORNADA ESPERADA -->
       <section class="painel">
         <h2>Jornada diária esperada</h2>
         <div class="grid">
@@ -361,7 +372,6 @@
         <p class="nota">Saldo do dia = trabalhado − jornada esperada.</p>
       </section>
 
-      <!-- BACKUP -->
       <section class="painel">
         <h2>Backup dos dados</h2>
         <div class="acoes" style="margin-top:0;flex-direction:column">
@@ -382,8 +392,8 @@
 <div id="alertaGif" class="modal oculto">
   <div class="modal-conteudo">
     <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta de ponto fora do horário">
-    <h3>⏰ Ponto fora do horário previsto!</h3>
-    <p id="textoAlerta">Você registrou um horário diferente do previsto.</p>
+    <h3>⏰ Horário fora do previsto!</h3>
+    <p id="textoAlerta"></p>
     <div class="acoes" style="justify-content:center">
       <button class="btn primario" id="btnSalvarForcado">Salvar mesmo assim</button>
       <button class="btn" id="btnFecharAlerta">Cancelar</button>
@@ -399,26 +409,6 @@
     <p id="textoExtra"></p>
     <div class="acoes" style="justify-content:center">
       <button class="btn primario" id="btnExtraOk">Entendi</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL 3: EDITAR DIA -->
-<div id="modalEditar" class="modal oculto">
-  <div class="modal-conteudo" style="text-align:left">
-    <h3 style="text-align:center;margin-bottom:18px">Editar <span id="editData"></span></h3>
-    <div class="grid">
-      <div><label>Entrada</label><input type="time" id="editEntrada"></div>
-      <div><label>Saída almoço</label><input type="time" id="editSaidaAlmoco"></div>
-      <div><label>Volta almoço</label><input type="time" id="editVoltaAlmoco"></div>
-      <div><label>Saída</label><input type="time" id="editSaida"></div>
-    </div>
-    <label class="check" style="margin-top:16px">
-      <input type="checkbox" id="editFolga"> Folga / feriado
-    </label>
-    <div class="acoes" style="justify-content:flex-end;margin-top:20px">
-      <button class="btn" id="btnEditCancelar">Cancelar</button>
-      <button class="btn primario" id="btnEditSalvar">Salvar</button>
     </div>
   </div>
 </div>
@@ -458,7 +448,8 @@
     saidaPrev: '17:00'
   };
   let editandoId = null;
-  let pendingPunch = null;
+  let calAno, calMes; // mês exibido no calendário
+  let forcarSalvar = false;
 
   /* ---------------- Utilidades ---------------- */
   const pad = n => String(n).padStart(2,'0');
@@ -481,10 +472,6 @@
     const d = new Date();
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   };
-  const horaAtualHM = () => {
-    const d = new Date();
-    return pad(d.getHours()) + ':' + pad(d.getMinutes());
-  };
   const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID)
       ? crypto.randomUUID()
       : String(Date.now()) + Math.random().toString(16).slice(2);
@@ -506,6 +493,9 @@
 
   function diaCompleto(r){
     return r.folga || ORDEM.every(c => r[c]);
+  }
+  function diaTemAlgo(r){
+    return ORDEM.some(c => r[c]);
   }
 
   /* ---------------- Persistência ---------------- */
@@ -560,66 +550,160 @@
   /* ---------------- Relógio ---------------- */
   function atualizarRelogio(){
     const d = new Date();
-    $('relogioGrande').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-    $('dataLonga').textContent = DIAS_SEMANA[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    $('agoraRef').textContent = 'Agora: ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
   }
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
 
-  /* ---------------- Registro de hoje ---------------- */
-  function getHoje(){
-    const h = hojeISO();
-    return registros.find(r => r.data === h) || null;
-  }
-  function getOuCriarHoje(criar){
-    let r = getHoje();
-    if(!r && criar !== false){
-      r = {
-        id: uid(), data: hojeISO(),
-        entrada: null, saidaAlmoco: null, voltaAlmoco: null, saida: null,
-        folga: false, esperado: config.jornada
-      };
-      registros.push(r);
+  /* ---------------- CALENDÁRIO ---------------- */
+  function renderCalendario(){
+    $('calTitulo').textContent = MESES[calMes] + ' ' + calAno;
+
+    const primeiroDia = new Date(calAno, calMes, 1);
+    const diasNoMes = new Date(calAno, calMes + 1, 0).getDate();
+    const diaSemanaInicio = primeiroDia.getDay(); // 0=Dom
+    const dataForm = $('data').value;
+    const hoje = hojeISO();
+
+    let html = '';
+    // Dias vazios antes do dia 1
+    for(let i = 0; i < diaSemanaInicio; i++){
+      html += '<div class="cal-dia vazio"></div>';
     }
-    return r;
-  }
-  function proximoCampo(r){
-    if(!r) return 'entrada';
-    for(const c of ORDEM){
-      if(!r[c]) return c;
-    }
-    return null;
-  }
+    // Dias do mês
+    for(let d = 1; d <= diasNoMes; d++){
+      const iso = `${calAno}-${pad(calMes + 1)}-${pad(d)}`;
+      const reg = registros.find(r => r.data === iso);
 
-  /* ---------------- Bater Ponto ---------------- */
-  function baterPonto(){
-    let r = getOuCriarHoje();
-    if(r.folga){ alert('Hoje está marcado como folga. Desmarque para bater ponto.'); return; }
+      let cls = 'cal-dia';
+      if(reg){
+        if(reg.folga) cls += ' folga';
+        else if(diaCompleto(reg)) cls += ' completo';
+        else if(diaTemAlgo(reg)) cls += ' incompleto';
+      }
+      if(iso === hoje) cls += ' hoje';
+      if(iso === dataForm) cls += ' selecionado';
 
-    const campo = proximoCampo(r);
-    if(!campo){ alert('Todos os pontos de hoje já foram batidos. ✅'); return; }
-
-    const agora = horaAtualHM();
-    const detalhes = verificarDivergencia(campo, agora, r);
-
-    if(detalhes.length){
-      pendingPunch = { campo, valor: agora };
-      $('textoAlerta').innerHTML = 'Foram detectadas divergências:<br><small>' + detalhes.join('<br>') + '</small>';
-      $('alertaGif').classList.remove('oculto');
-      return;
+      html += `<button type="button" class="${cls}" data-data="${iso}">${d}</button>`;
     }
 
-    aplicarPunch(campo, agora);
+    $('calGrid').innerHTML = html;
   }
 
-  function verificarDivergencia(campo, valor, r){
+  $('calPrev').addEventListener('click', () => {
+    calMes--;
+    if(calMes < 0){ calMes = 11; calAno--; }
+    renderCalendario();
+  });
+  $('calNext').addEventListener('click', () => {
+    calMes++;
+    if(calMes > 11){ calMes = 0; calAno++; }
+    renderCalendario();
+  });
+  $('calHoje').addEventListener('click', () => {
+    const h = new Date();
+    calAno = h.getFullYear();
+    calMes = h.getMonth();
+    $('data').value = hojeISO();
+    carregarDiaNoForm();
+    renderCalendario();
+  });
+
+  $('calGrid').addEventListener('click', e => {
+    const btn = e.target.closest('button.cal-dia');
+    if(!btn) return;
+    const iso = btn.dataset.data;
+    if(!iso) return;
+    $('data').value = iso;
+    carregarDiaNoForm();
+    renderCalendario();
+    // Rola suavemente até o formulário (só se estiver fora da viewport)
+    const formRect = $('form').getBoundingClientRect();
+    if(formRect.top < 0 || formRect.top > window.innerHeight){
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  /* ---------------- FORMULÁRIO ---------------- */
+  function carregarDiaNoForm(){
+    const iso = $('data').value;
+    if(!iso) return;
+    const r = registros.find(x => x.data === iso);
+
+    if(r){
+      editandoId = r.id;
+      $('entrada').value     = r.entrada || '';
+      $('saidaAlmoco').value = r.saidaAlmoco || '';
+      $('voltaAlmoco').value = r.voltaAlmoco || '';
+      $('saida').value       = r.saida || '';
+      $('folga').checked     = !!r.folga;
+      $('tituloForm').textContent = 'Editando ' + fmtData(iso);
+      $('btnSalvar').textContent = 'Salvar alterações';
+      $('btnExcluir').classList.remove('oculto');
+    } else {
+      editandoId = null;
+      $('entrada').value     = '';
+      $('saidaAlmoco').value = '';
+      $('voltaAlmoco').value = '';
+      $('saida').value       = '';
+      $('folga').checked     = false;
+      $('tituloForm').textContent = 'Novo lançamento';
+      $('btnSalvar').textContent = 'Salvar lançamento';
+      $('btnExcluir').classList.add('oculto');
+    }
+    forcarSalvar = false;
+  }
+
+  // Carrega o dia quando muda a data
+  $('data').addEventListener('change', () => {
+    carregarDiaNoForm();
+    renderCalendario();
+  });
+
+  // Auto-preenche a volta do almoço (+1h) SOMENTE se estiver vazio
+  $('saidaAlmoco').addEventListener('change', function(){
+    if(this.value && !$('voltaAlmoco').value){
+      const [h, m] = this.value.split(':').map(Number);
+      const dt = new Date(); dt.setHours(h, m + 60, 0, 0);
+      $('voltaAlmoco').value = pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+    }
+  });
+
+  // Botão "Novo (limpar)"
+  $('btnNovo').addEventListener('click', () => {
+    $('data').value = hojeISO();
+    carregarDiaNoForm();
+    renderCalendario();
+  });
+
+  // Botão "Excluir este dia"
+  $('btnExcluir').addEventListener('click', () => {
+    if(!editandoId) return;
+    const r = registros.find(x => x.id === editandoId);
+    if(!r) return;
+    if(confirm('Excluir o lançamento de ' + fmtData(r.data) + '?')){
+      registros = registros.filter(x => x.id !== editandoId);
+      persistir();
+      carregarDiaNoForm();
+      render();
+    }
+  });
+
+  /* ---------------- Validação ---------------- */
+  function verificarDivergencias(r){
     const detalhes = [];
-    const previsto = config[CONFIG_KEY[campo]];
-    if(previsto && valor !== previsto){
-      detalhes.push(`${LABELS[campo]}: registrado ${valor} (previsto ${previsto})`);
-    }
-    if(campo === 'voltaAlmoco' && r.saidaAlmoco){
-      const dur = hhmmParaMin(valor) - hhmmParaMin(r.saidaAlmoco);
+    if(r.folga) return detalhes;
+
+    ORDEM.forEach(c => {
+      const prev = config[CONFIG_KEY[c]];
+      if(prev && r[c] && r[c] !== prev){
+        detalhes.push(`${LABELS[c]}: ${r[c]} (previsto ${prev})`);
+      }
+    });
+
+    // Valida almoço = 1h
+    if(r.saidaAlmoco && r.voltaAlmoco){
+      const dur = hhmmParaMin(r.voltaAlmoco) - hhmmParaMin(r.saidaAlmoco);
       if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
         detalhes.push(`Almoço: ${minParaHhmm(Math.abs(dur))} (esperado 01:00)`);
       }
@@ -627,65 +711,102 @@
     return detalhes;
   }
 
-  function aplicarPunch(campo, valor){
-    const r = getOuCriarHoje();
-    r[campo] = valor;
+  /* ---------------- Submit ---------------- */
+  $('form').addEventListener('submit', e => {
+    e.preventDefault();
 
-    if(campo === 'saida' && r.entrada && r.saidaAlmoco && r.voltaAlmoco){
-      const trab = trabalhadoMin(r);
-      if(trab > config.jornada){
-        const extra = trab - config.jornada;
-        $('textoExtra').innerHTML =
-          `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
-          `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
-          `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra foi somado ao seu banco de horas.`;
-        setTimeout(() => $('alertaExtra').classList.remove('oculto'), 200);
+    const iso = $('data').value;
+    if(!iso){ alert('Informe uma data.'); return; }
+
+    const novoReg = {
+      data: iso,
+      entrada:     $('entrada').value     || null,
+      saidaAlmoco: $('saidaAlmoco').value || null,
+      voltaAlmoco: $('voltaAlmoco').value || null,
+      saida:       $('saida').value       || null,
+      folga:       $('folga').checked,
+      esperado:    0
+    };
+    novoReg.esperado = novoReg.folga ? 0 : config.jornada;
+
+    const algumTempo = ORDEM.some(c => novoReg[c]);
+    if(!novoReg.folga && !algumTempo){
+      alert('Informe pelo menos um horário ou marque Folga.');
+      return;
+    }
+
+    // 1) Verifica divergências de horário
+    if(!forcarSalvar){
+      const detalhes = verificarDivergencias(novoReg);
+      if(detalhes.length){
+        window.__pending = novoReg;
+        $('textoAlerta').innerHTML = 'Foram detectadas divergências:<br><small>' + detalhes.join('<br>') + '</small>';
+        $('alertaGif').classList.remove('oculto');
+        return;
       }
     }
 
-    persistir();
-    render();
-  }
+    // 2) Verifica jornada excedida
+    let mostrarExtra = false;
+    let trab = 0, extra = 0;
+    if(diaCompleto(novoReg) && !novoReg.folga){
+      trab = trabalhadoMin(novoReg);
+      if(trab > config.jornada){
+        extra = trab - config.jornada;
+        mostrarExtra = true;
+      }
+    }
 
-  $('btnBater').addEventListener('click', baterPonto);
+    salvarRegistro(novoReg);
 
-  $('btnFecharAlerta').addEventListener('click', () => {
-    $('alertaGif').classList.add('oculto');
-    pendingPunch = null;
-  });
-  $('btnSalvarForcado').addEventListener('click', () => {
-    $('alertaGif').classList.add('oculto');
-    if(pendingPunch){
-      aplicarPunch(pendingPunch.campo, pendingPunch.valor);
-      pendingPunch = null;
+    if(mostrarExtra){
+      $('textoExtra').innerHTML =
+        `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
+        `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
+        `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra foi somado ao seu banco de horas.`;
+      setTimeout(() => $('alertaExtra').classList.remove('oculto'), 150);
     }
   });
 
+  function salvarRegistro(novoReg){
+    if(editandoId){
+      const i = registros.findIndex(r => r.id === editandoId);
+      if(i > -1){
+        registros[i] = Object.assign({ id: editandoId }, novoReg);
+      }
+    } else {
+      novoReg.id = uid();
+      registros.push(novoReg);
+    }
+    persistir();
+    forcarSalvar = false;
+
+    // Após salvar, limpa o form mas mantém a data para conferência
+    const dataAtual = $('data').value;
+    editandoId = registros.find(r => r.data === dataAtual)?.id || null;
+    carregarDiaNoForm();
+    render();
+  }
+
+  // Modal 1
+  $('btnFecharAlerta').addEventListener('click', () => {
+    $('alertaGif').classList.add('oculto');
+    window.__pending = null;
+    forcarSalvar = false;
+  });
+  $('btnSalvarForcado').addEventListener('click', () => {
+    $('alertaGif').classList.add('oculto');
+    forcarSalvar = true;
+    // Reenvia o form para salvar de fato
+    $('form').dispatchEvent(new Event('submit'));
+  });
+
+  // Modal 2
   $('btnExtraOk').addEventListener('click', () => {
     $('alertaExtra').classList.add('oculto');
   });
 
-  /* ---------------- Inputs manuais de hoje ---------------- */
-  document.querySelectorAll('.ponto-input').forEach(inp => {
-    inp.addEventListener('change', function(){
-      const campo = this.dataset.campo;
-      const valor = this.value || null;
-      const r = getOuCriarHoje();
-      r[campo] = valor;
-      persistir();
-      render();
-    });
-  });
-
-  $('hojeFolga').addEventListener('change', function(){
-    const r = getOuCriarHoje();
-    r.folga = this.checked;
-    r.esperado = this.checked ? 0 : config.jornada;
-    persistir();
-    render();
-  });
-
-  /* ---------------- Horários previstos (Config) ---------------- */
+  /* ---------------- Configurações ---------------- */
   function atualizarVoltaAlmocoPrev(){
     const s = $('saidaAlmocoPrev').value;
     if(s){
@@ -699,13 +820,11 @@
     config.saidaAlmocoPrev = $('saidaAlmocoPrev').value;
     config.voltaAlmocoPrev = $('voltaAlmocoPrev').value;
     persistir();
-    renderHoje();
   });
   ['entradaPrev','saidaPrev'].forEach(id => {
     $(id).addEventListener('change', () => {
       config[id] = $(id).value;
       persistir();
-      renderHoje();
     });
   });
 
@@ -719,51 +838,7 @@
     render();
   });
 
-  /* ---------------- Render: painel de hoje ---------------- */
-  function renderHoje(){
-    const r = getHoje();
-    ORDEM.forEach(c => {
-      const inp = document.querySelector(`[data-campo="${c}"]`);
-      const status = document.querySelector(`[data-status="${c}"]`);
-      const linha = document.querySelector(`[data-row="${c}"]`);
-      const val = r ? (r[c] || '') : '';
-      if(inp && inp.value !== val) inp.value = val;
-      if(status) status.textContent = val ? '✅' : '⬜';
-      if(linha){
-        if(val) linha.classList.add('completo');
-        else linha.classList.remove('completo');
-      }
-    });
-
-    const folgaChk = $('hojeFolga');
-    folgaChk.checked = r ? !!r.folga : false;
-
-    const algumPonto = r && ORDEM.some(c => r[c]);
-    folgaChk.disabled = !!algumPonto;
-
-    if(r && r.folga){
-      $('proximoNome').textContent = 'Dia de folga 🌴';
-      $('btnBater').disabled = true;
-      $('btnBater').innerHTML = '🌴 Folga';
-      return;
-    }
-
-    const prox = proximoCampo(r);
-    if(prox){
-      const prev = config[CONFIG_KEY[prox]];
-      $('proximoNome').innerHTML =
-        `<strong>${LABELS[prox]}</strong>` +
-        (prev ? ` <span class="prev-hint">(previsto ${prev})</span>` : '');
-      $('btnBater').disabled = false;
-      $('btnBater').innerHTML = '⏱ Bater ' + LABELS[prox];
-    } else {
-      $('proximoNome').innerHTML = '<strong>Dia completo ✅</strong>';
-      $('btnBater').disabled = true;
-      $('btnBater').innerHTML = '✓ Todos os pontos batidos';
-    }
-  }
-
-  /* ---------------- Render: geral ---------------- */
+  /* ---------------- Render geral ---------------- */
   function render(){
     let totalTrab = 0, totalEsp = 0;
     let completos = 0, andamento = 0;
@@ -773,7 +848,7 @@
         totalTrab += trabalhadoMin(r);
         totalEsp  += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
         completos++;
-      } else if(ORDEM.some(c => r[c])){
+      } else if(diaTemAlgo(r)){
         andamento++;
       }
     });
@@ -794,7 +869,7 @@
     const corpo = $('corpo');
 
     if(!ordenados.length){
-      corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum registro ainda. Bata seu primeiro ponto acima. 👆</td></tr>';
+      corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum lançamento ainda. Adicione um dia no formulário acima ou clique no calendário. 👆</td></tr>';
     } else {
       corpo.innerHTML = ordenados.map(r => {
         const completo = diaCompleto(r);
@@ -804,8 +879,8 @@
         const cls  = !completo ? 'mut' : (s > 0 ? 'pos' : s < 0 ? 'neg' : '');
         const valOuTraco = v => v || '<span class="mut">—</span>';
 
-        return `<tr>
-          <td>${fmtData(r.data)}${r.folga ? '<span class="tag">folga</span>' : ''}${!completo ? '<span class="tag andamento">em andamento</span>' : ''}</td>
+        return `<tr class="clickable" data-editar="${r.id}">
+          <td>${fmtData(r.data)}${r.folga ? '<span class="tag">folga</span>' : ''}${!completo && diaTemAlgo(r) ? '<span class="tag andamento">parcial</span>' : ''}</td>
           <td>${valOuTraco(r.entrada)}</td>
           <td>${valOuTraco(r.saidaAlmoco)}</td>
           <td>${valOuTraco(r.voltaAlmoco)}</td>
@@ -813,70 +888,49 @@
           <td>${trab > 0 ? minParaHhmm(trab) : '<span class="mut">—</span>'}</td>
           <td class="forte ${cls}">${completo ? fmtSaldo(s) : '<span class="mut">—</span>'}</td>
           <td>
-            <button class="icone" data-editar="${r.id}" title="Editar">✏️</button>
             <button class="icone" data-excluir="${r.id}" title="Excluir">🗑️</button>
           </td>
         </tr>`;
       }).join('');
     }
 
-    renderHoje();
+    renderCalendario();
   }
 
-  /* ---------------- Editar / Excluir ---------------- */
+  // Clique na linha do histórico abre o dia no formulário
   $('corpo').addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    const idEd = btn.dataset.editar;
-    const idEx = btn.dataset.excluir;
-
-    if(idEd){
-      const r = registros.find(x => x.id === idEd);
-      if(!r) return;
-      editandoId = idEd;
-      $('editData').textContent = fmtData(r.data);
-      $('editEntrada').value = r.entrada || '';
-      $('editSaidaAlmoco').value = r.saidaAlmoco || '';
-      $('editVoltaAlmoco').value = r.voltaAlmoco || '';
-      $('editSaida').value = r.saida || '';
-      $('editFolga').checked = !!r.folga;
-      $('modalEditar').classList.remove('oculto');
-    }
-
-    if(idEx){
-      const r = registros.find(x => x.id === idEx);
-      if(r && confirm('Excluir o registro de ' + fmtData(r.data) + '?')){
-        registros = registros.filter(x => x.id !== idEx);
+    const btnExc = e.target.closest('button[data-excluir]');
+    if(btnExc){
+      e.stopPropagation();
+      const id = btnExc.dataset.excluir;
+      const r = registros.find(x => x.id === id);
+      if(r && confirm('Excluir o lançamento de ' + fmtData(r.data) + '?')){
+        registros = registros.filter(x => x.id !== id);
         persistir();
+        if(editandoId === id){
+          carregarDiaNoForm();
+        }
         render();
       }
+      return;
     }
-  });
 
-  $('btnEditCancelar').addEventListener('click', () => {
-    $('modalEditar').classList.add('oculto');
-    editandoId = null;
-  });
-
-  $('btnEditSalvar').addEventListener('click', () => {
-    const r = registros.find(x => x.id === editandoId);
-    if(!r) return;
-    r.entrada     = $('editEntrada').value     || null;
-    r.saidaAlmoco = $('editSaidaAlmoco').value || null;
-    r.voltaAlmoco = $('editVoltaAlmoco').value || null;
-    r.saida       = $('editSaida').value       || null;
-    r.folga       = $('editFolga').checked;
-    r.esperado    = r.folga ? 0 : config.jornada;
-    persistir();
-    $('modalEditar').classList.add('oculto');
-    editandoId = null;
-    render();
+    const tr = e.target.closest('tr[data-editar]');
+    if(tr){
+      const id = tr.dataset.editar;
+      const r = registros.find(x => x.id === id);
+      if(!r) return;
+      $('data').value = r.data;
+      carregarDiaNoForm();
+      renderCalendario();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   });
 
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 5,
+      app: 'banco-de-horas', versao: 6,
       exportadoEm: new Date().toISOString(),
       config, registros
     };
@@ -926,6 +980,7 @@
         }
 
         persistir();
+        carregarDiaNoForm();
         render();
         alert('Dados importados com sucesso!');
       }catch(err){
@@ -944,17 +999,28 @@
     if(confirm('Apagar TODOS os registros? Essa ação não pode ser desfeita.')){
       registros = [];
       persistir();
+      carregarDiaNoForm();
       render();
     }
   });
 
   /* ---------------- Inicialização ---------------- */
   carregar();
+
   $('jornada').value         = minParaHhmm(config.jornada);
   $('entradaPrev').value     = config.entradaPrev || '08:00';
   $('saidaAlmocoPrev').value = config.saidaAlmocoPrev || '12:00';
   $('voltaAlmocoPrev').value = config.voltaAlmocoPrev || '13:00';
   $('saidaPrev').value       = config.saidaPrev || '17:00';
+
+  // Calendário inicia no mês atual
+  const hj = new Date();
+  calAno = hj.getFullYear();
+  calMes = hj.getMonth();
+
+  // Form inicia com a data de hoje
+  $('data').value = hojeISO();
+  carregarDiaNoForm();
   render();
 })();
 </script>
