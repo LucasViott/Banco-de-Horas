@@ -37,7 +37,7 @@
     min-height:100vh;
     transition:background .3s, color .3s;
   }
-  .wrap{max-width:980px;margin:0 auto}
+  .wrap{max-width:1180px;margin:0 auto}
 
   .topo{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
   h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:.3px}
@@ -49,6 +49,27 @@
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
 
+  /* ---------- Grid 2 colunas ---------- */
+  .layout-2col{
+    display:grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 18px;
+    align-items: start;
+  }
+  .col-esquerda{min-width:0}
+  .col-direita{min-width:0;position:sticky;top:20px}
+
+  /* Painéis da coluna direita mais compactos */
+  .col-direita .painel{padding:16px}
+  .col-direita .painel:last-child{margin-bottom:0}
+  .col-direita .grid{grid-template-columns:1fr;gap:10px}
+  .col-direita .nota{margin-top:10px}
+
+  @media (max-width: 900px){
+    .layout-2col{grid-template-columns:1fr}
+    .col-direita{position:static}
+  }
+
   /* ---------- Botão de tema ---------- */
   .btn-tema{
     display:inline-flex;align-items:center;gap:8px;
@@ -57,6 +78,22 @@
     font-family:inherit;transition:.2s;white-space:nowrap;
   }
   .btn-tema:hover{background:var(--hover-btn)}
+
+  /* ---------- Card do saldo (DESTAQUE SUPERIOR) ---------- */
+  .saldo-card{
+    display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;
+    background:linear-gradient(135deg,var(--card2),var(--card));
+    border:1px solid var(--borda);border-left:6px solid #475569;
+    border-radius:16px;padding:24px 28px;margin-bottom:22px;transition:.25s;
+  }
+  .saldo-card.pos{border-left-color:var(--pos);box-shadow:0 0 0 1px rgba(34,197,94,.15),0 14px 34px -20px rgba(34,197,94,.8)}
+  .saldo-card.neg{border-left-color:var(--neg);box-shadow:0 0 0 1px rgba(239,68,68,.15),0 14px 34px -20px rgba(239,68,68,.8)}
+  .rotulo{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin-bottom:6px}
+  .saldo-valor{font-size:clamp(2.6rem,10vw,3.8rem);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .saldo-card.pos .saldo-valor{color:var(--pos);text-shadow:0 0 26px rgba(34,197,94,.35)}
+  .saldo-card.neg .saldo-valor{color:var(--neg);text-shadow:0 0 26px rgba(239,68,68,.35)}
+  .stats{display:flex;gap:26px;flex-wrap:wrap}
+  .stats strong{font-size:1.05rem;font-variant-numeric:tabular-nums}
 
   /* ---------- Painel BATER PONTO ---------- */
   .bater-painel{
@@ -132,22 +169,6 @@
     background:var(--input);
   }
 
-  /* ---------- Card do saldo ---------- */
-  .saldo-card{
-    display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;
-    background:linear-gradient(135deg,var(--card2),var(--card));
-    border:1px solid var(--borda);border-left:6px solid #475569;
-    border-radius:16px;padding:22px 24px;margin-bottom:18px;transition:.25s;
-  }
-  .saldo-card.pos{border-left-color:var(--pos);box-shadow:0 0 0 1px rgba(34,197,94,.15),0 14px 34px -20px rgba(34,197,94,.8)}
-  .saldo-card.neg{border-left-color:var(--neg);box-shadow:0 0 0 1px rgba(239,68,68,.15),0 14px 34px -20px rgba(239,68,68,.8)}
-  .rotulo{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin-bottom:6px}
-  .saldo-valor{font-size:clamp(2.4rem,9vw,3.4rem);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-  .saldo-card.pos .saldo-valor{color:var(--pos);text-shadow:0 0 26px rgba(34,197,94,.35)}
-  .saldo-card.neg .saldo-valor{color:var(--neg);text-shadow:0 0 26px rgba(239,68,68,.35)}
-  .stats{display:flex;gap:26px;flex-wrap:wrap}
-  .stats strong{font-size:1.05rem;font-variant-numeric:tabular-nums}
-
   /* ---------- Formulários ---------- */
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
   label{display:block;font-size:.76rem;color:var(--mut);margin-bottom:6px}
@@ -179,7 +200,7 @@
 
   /* ---------- Tabela ---------- */
   .tabela-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--borda)}
-  table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:720px}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
   th{
     text-align:left;padding:11px 12px;background:var(--card2);color:var(--mut);
     font-size:.7rem;text-transform:uppercase;letter-spacing:.9px;font-weight:600;white-space:nowrap;
@@ -195,7 +216,7 @@
   .icone{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;opacity:.65;color:var(--txt)}
   .icone:hover{opacity:1;background:var(--hover-btn)}
   .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
-  .nota{color:var(--mut);font-size:.8rem;margin:12px 0 0;line-height:1.5}
+  .nota{color:var(--mut);font-size:.78rem;margin:12px 0 0;line-height:1.5}
 
   /* ---------- Modal Alerta GIF ---------- */
   .modal{
@@ -234,44 +255,7 @@
     </button>
   </header>
 
-  <!-- BATER PONTO -->
-  <section class="bater-painel">
-    <div class="data-longa" id="dataLonga"></div>
-    <div class="relogio-grande" id="relogioGrande">00:00:00</div>
-
-    <button class="btn-bater" id="btnBater" type="button">⏱ Bater ponto</button>
-    <div class="proximo-label">Próximo: <span id="proximoNome">Entrada</span></div>
-
-    <div class="pontos-lista">
-      <div class="ponto-linha" data-row="entrada">
-        <span class="ponto-status" data-status="entrada">⬜</span>
-        <span class="ponto-nome">Entrada</span>
-        <input type="time" class="ponto-input" data-campo="entrada">
-      </div>
-      <div class="ponto-linha" data-row="saidaAlmoco">
-        <span class="ponto-status" data-status="saidaAlmoco">⬜</span>
-        <span class="ponto-nome">Saída almoço</span>
-        <input type="time" class="ponto-input" data-campo="saidaAlmoco">
-      </div>
-      <div class="ponto-linha" data-row="voltaAlmoco">
-        <span class="ponto-status" data-status="voltaAlmoco">⬜</span>
-        <span class="ponto-nome">Volta almoço</span>
-        <input type="time" class="ponto-input" data-campo="voltaAlmoco">
-      </div>
-      <div class="ponto-linha" data-row="saida">
-        <span class="ponto-status" data-status="saida">⬜</span>
-        <span class="ponto-nome">Saída</span>
-        <input type="time" class="ponto-input" data-campo="saida">
-      </div>
-    </div>
-
-    <label class="check" style="justify-content:center;margin-top:18px">
-      <input type="checkbox" id="hojeFolga">
-      Folga / feriado hoje
-    </label>
-  </section>
-
-  <!-- SALDO EM DESTAQUE -->
+  <!-- SALDO EM DESTAQUE (TOPO) -->
   <div class="saldo-card" id="saldoCard">
     <div>
       <span class="rotulo">Saldo do banco de horas</span>
@@ -285,66 +269,112 @@
     </div>
   </div>
 
-  <!-- HORÁRIOS PREVISTOS -->
-  <section class="painel">
-    <h2>Horários previstos de ponto</h2>
-    <div class="grid">
-      <div><label for="entradaPrev">Entrada prevista</label><input type="time" id="entradaPrev" value="08:00"></div>
-      <div><label for="saidaAlmocoPrev">Saída almoço prevista</label><input type="time" id="saidaAlmocoPrev" value="12:00"></div>
-      <div><label for="voltaAlmocoPrev">Volta almoço prevista</label><input type="time" id="voltaAlmocoPrev" value="13:00" readonly></div>
-      <div><label for="saidaPrev">Saída prevista</label><input type="time" id="saidaPrev" value="17:00"></div>
-    </div>
-    <p class="nota">O horário de almoço é definido automaticamente como 1 hora (12:00 → 13:00).</p>
-  </section>
+  <!-- LAYOUT 2 COLUNAS -->
+  <div class="layout-2col">
 
-  <!-- CONFIGURAÇÃO -->
-  <section class="painel">
-    <h2>Jornada diária esperada</h2>
-    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <input type="time" id="jornada" value="08:00" style="max-width:140px">
-      <span style="color:var(--mut);font-size:.85rem">
-        Saldo do dia = horas trabalhadas − jornada esperada.
-      </span>
-    </div>
-  </section>
+    <!-- COLUNA ESQUERDA: BATER PONTO + HISTÓRICO -->
+    <div class="col-esquerda">
 
-  <!-- HISTÓRICO -->
-  <section class="painel">
-    <h2>Histórico</h2>
-    <div class="tabela-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Entrada</th>
-            <th>Saí. almoço</th>
-            <th>Volta</th>
-            <th>Saída</th>
-            <th>Trabalhado</th>
-            <th>Saldo do dia</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="corpo"></tbody>
-      </table>
-    </div>
-    <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias em andamento aparecem em laranja.</p>
-  </section>
+      <!-- BATER PONTO -->
+      <section class="bater-painel">
+        <div class="data-longa" id="dataLonga"></div>
+        <div class="relogio-grande" id="relogioGrande">00:00:00</div>
 
-  <!-- BACKUP -->
-  <section class="painel">
-    <h2>Backup dos dados</h2>
-    <div class="acoes" style="margin-top:0">
-      <button class="btn" id="btnExportar">⬇ Exportar arquivo</button>
-      <button class="btn" id="btnImportar">⬆ Importar arquivo</button>
-      <button class="btn perigo" id="btnLimpar">Apagar tudo</button>
-      <input type="file" id="arquivo" accept="application/json" class="oculto">
+        <button class="btn-bater" id="btnBater" type="button">⏱ Bater ponto</button>
+        <div class="proximo-label">Próximo: <span id="proximoNome">Entrada</span></div>
+
+        <div class="pontos-lista">
+          <div class="ponto-linha" data-row="entrada">
+            <span class="ponto-status" data-status="entrada">⬜</span>
+            <span class="ponto-nome">Entrada</span>
+            <input type="time" class="ponto-input" data-campo="entrada">
+          </div>
+          <div class="ponto-linha" data-row="saidaAlmoco">
+            <span class="ponto-status" data-status="saidaAlmoco">⬜</span>
+            <span class="ponto-nome">Saída almoço</span>
+            <input type="time" class="ponto-input" data-campo="saidaAlmoco">
+          </div>
+          <div class="ponto-linha" data-row="voltaAlmoco">
+            <span class="ponto-status" data-status="voltaAlmoco">⬜</span>
+            <span class="ponto-nome">Volta almoço</span>
+            <input type="time" class="ponto-input" data-campo="voltaAlmoco">
+          </div>
+          <div class="ponto-linha" data-row="saida">
+            <span class="ponto-status" data-status="saida">⬜</span>
+            <span class="ponto-nome">Saída</span>
+            <input type="time" class="ponto-input" data-campo="saida">
+          </div>
+        </div>
+
+        <label class="check" style="justify-content:center;margin-top:18px">
+          <input type="checkbox" id="hojeFolga">
+          Folga / feriado hoje
+        </label>
+      </section>
+
+      <!-- HISTÓRICO -->
+      <section class="painel">
+        <h2>Histórico</h2>
+        <div class="tabela-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Entrada</th>
+                <th>Saí. almoço</th>
+                <th>Volta</th>
+                <th>Saída</th>
+                <th>Trabalhado</th>
+                <th>Saldo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="corpo"></tbody>
+          </table>
+        </div>
+        <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias em andamento aparecem em laranja.</p>
+      </section>
+
     </div>
-    <p class="nota">
-      Os registros ficam salvos no seu navegador (localStorage).
-      Exporte o arquivo para guardar um backup ou levar os dados para outro computador.
-    </p>
-  </section>
+
+    <!-- COLUNA DIREITA: HORÁRIOS PREVISTOS + JORNADA + BACKUP -->
+    <aside class="col-direita">
+
+      <!-- HORÁRIOS PREVISTOS -->
+      <section class="painel">
+        <h2>Horários previstos</h2>
+        <div class="grid">
+          <div><label for="entradaPrev">Entrada</label><input type="time" id="entradaPrev" value="08:00"></div>
+          <div><label for="saidaAlmocoPrev">Saída almoço</label><input type="time" id="saidaAlmocoPrev" value="12:00"></div>
+          <div><label for="voltaAlmocoPrev">Volta almoço</label><input type="time" id="voltaAlmocoPrev" value="13:00" readonly></div>
+          <div><label for="saidaPrev">Saída</label><input type="time" id="saidaPrev" value="17:00"></div>
+        </div>
+        <p class="nota">Almoço de 1 hora automático (ex.: 12:00 → 13:00).</p>
+      </section>
+
+      <!-- JORNADA ESPERADA -->
+      <section class="painel">
+        <h2>Jornada diária esperada</h2>
+        <div class="grid">
+          <div><label for="jornada">Duração</label><input type="time" id="jornada" value="08:00"></div>
+        </div>
+        <p class="nota">Saldo do dia = trabalhado − jornada esperada.</p>
+      </section>
+
+      <!-- BACKUP -->
+      <section class="painel">
+        <h2>Backup dos dados</h2>
+        <div class="acoes" style="margin-top:0;flex-direction:column">
+          <button class="btn" id="btnExportar" style="width:100%">⬇ Exportar arquivo</button>
+          <button class="btn" id="btnImportar" style="width:100%">⬆ Importar arquivo</button>
+          <button class="btn perigo" id="btnLimpar" style="width:100%">Apagar tudo</button>
+          <input type="file" id="arquivo" accept="application/json" class="oculto">
+        </div>
+      </section>
+
+    </aside>
+
+  </div>
 
 </div>
 
@@ -588,7 +618,6 @@
     if(previsto && valor !== previsto){
       detalhes.push(`${LABELS[campo]}: registrado ${valor} (previsto ${previsto})`);
     }
-    // Se é volta almoço, valida duração de 1h
     if(campo === 'voltaAlmoco' && r.saidaAlmoco){
       const dur = hhmmParaMin(valor) - hhmmParaMin(r.saidaAlmoco);
       if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
@@ -602,7 +631,6 @@
     const r = getOuCriarHoje();
     r[campo] = valor;
 
-    // Se acabou de fechar o dia, verifica se passou da jornada
     if(campo === 'saida' && r.entrada && r.saidaAlmoco && r.voltaAlmoco){
       const trab = trabalhadoMin(r);
       if(trab > config.jornada){
@@ -611,7 +639,6 @@
           `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
           `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
           `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra foi somado ao seu banco de horas.`;
-        // Mostra com pequeno delay para não competir com outros modais
         setTimeout(() => $('alertaExtra').classList.remove('oculto'), 200);
       }
     }
@@ -622,7 +649,6 @@
 
   $('btnBater').addEventListener('click', baterPonto);
 
-  // Modal ponto fora do horário
   $('btnFecharAlerta').addEventListener('click', () => {
     $('alertaGif').classList.add('oculto');
     pendingPunch = null;
@@ -635,7 +661,6 @@
     }
   });
 
-  // Modal jornada excedida (apenas informativo)
   $('btnExtraOk').addEventListener('click', () => {
     $('alertaExtra').classList.add('oculto');
   });
@@ -687,7 +712,6 @@
   $('jornada').addEventListener('change', e => {
     if(!e.target.value){ e.target.value = minParaHhmm(config.jornada); return; }
     config.jornada = hhmmParaMin(e.target.value);
-    // Atualiza dias sem lançamento manual
     registros.forEach(r => {
       if(!r.folga) r.esperado = config.jornada;
     });
