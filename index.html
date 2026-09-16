@@ -109,7 +109,35 @@
   html[data-tema="escuro"] input{color-scheme:dark}
   html[data-tema="claro"] input{color-scheme:light}
   input:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
-  .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer;margin-top:14px}
+  input.divergente{border-color:var(--laranja);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+
+  /* ---------- Previsão de saída ---------- */
+  .previsao-saida{
+    display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;
+    background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(59,130,246,.03));
+    border:1px solid rgba(59,130,246,.3);
+    border-left:4px solid var(--azul);
+    border-radius:12px;
+    padding:14px 18px;
+    margin-top:16px;
+    transition:.25s;
+  }
+  .previsao-saida.inativo{
+    background:var(--card2);border-color:var(--borda);border-left-color:var(--borda);
+    opacity:.75;
+  }
+  .previsao-valor{
+    font-size:1.7rem;font-weight:800;color:var(--azul);
+    font-variant-numeric:tabular-nums;letter-spacing:.5px;line-height:1;
+  }
+  .previsao-saida.inativo .previsao-valor{color:var(--mut)}
+  .previsao-det{
+    font-size:.78rem;color:var(--mut);text-align:right;line-height:1.5;
+    font-variant-numeric:tabular-nums;
+  }
+  .previsao-det strong{color:var(--txt);font-weight:600}
+
+  .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer;margin-top:16px}
   .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
   .btn{
     border:1px solid var(--borda-input);background:var(--card2);color:var(--txt);
@@ -291,6 +319,17 @@
             <div><label for="saida">Saída</label><input type="time" id="saida"></div>
           </div>
 
+          <!-- PREVISÃO DE SAÍDA -->
+          <div class="previsao-saida inativo" id="previsaoBox">
+            <div>
+              <span class="rotulo">Saída prevista</span>
+              <div class="previsao-valor" id="previsaoValor">—:—</div>
+            </div>
+            <div class="previsao-det" id="previsaoDet">
+              Informe a entrada para calcular
+            </div>
+          </div>
+
           <label class="check">
             <input type="checkbox" id="folga">
             Folga / feriado (não exigir jornada neste dia)
@@ -388,15 +427,14 @@
 
 </div>
 
-<!-- MODAL 1: PONTO FORA DO HORÁRIO -->
+<!-- MODAL 1: HORÁRIO FORA DO PREVISTO -->
 <div id="alertaGif" class="modal oculto">
   <div class="modal-conteudo">
-    <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta de ponto fora do horário">
+    <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta de horário fora do previsto">
     <h3>⏰ Horário fora do previsto!</h3>
     <p id="textoAlerta"></p>
     <div class="acoes" style="justify-content:center">
-      <button class="btn primario" id="btnSalvarForcado">Salvar mesmo assim</button>
-      <button class="btn" id="btnFecharAlerta">Cancelar</button>
+      <button class="btn primario" id="btnFecharAlerta">Entendi</button>
     </div>
   </div>
 </div>
@@ -436,7 +474,6 @@
     saida: 'saidaPrev'
   };
 
-  const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
   const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
   let registros = [];
@@ -448,8 +485,8 @@
     saidaPrev: '17:00'
   };
   let editandoId = null;
-  let calAno, calMes; // mês exibido no calendário
-  let forcarSalvar = false;
+  let calAno, calMes;
+  let alertasMostrados = {}; // evita repetir o mesmo alerta para o mesmo valor
 
   /* ---------------- Utilidades ---------------- */
   const pad = n => String(n).padStart(2,'0');
@@ -490,7 +527,6 @@
     }
     return total;
   }
-
   function diaCompleto(r){
     return r.folga || ORDEM.every(c => r[c]);
   }
@@ -555,22 +591,74 @@
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
 
+  /* ---------------- PREVISÃO DE SAÍDA ---------------- */
+  // Fórmula: entrada + jornada esperada + duração do almoço
+  // (usa a duração real do almoço se informada, senão 1h fixa)
+  function calcularSaidaPrevista(){
+    const entrada = $('entrada').value;
+    if(!entrada) return null;
+
+    const saidaAlmoco = $('saidaAlmoco').value;
+    const voltaAlmoco = $('voltaAlmoco').value;
+    let duracaoAlmoco = 60; // padrão 1h
+
+    if(saidaAlmoco && voltaAlmoco){
+      let d = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
+      if(d < 0) d += 1440;
+      if(d > 0) duracaoAlmoco = d;
+    }
+
+    const totalMin = hhmmParaMin(entrada) + config.jornada + duracaoAlmoco;
+    return {
+      hhmm: minParaHhmm(((totalMin % 1440) + 1440) % 1440),
+      duracaoAlmoco: duracaoAlmoco,
+      jornada: config.jornada
+    };
+  }
+
+  function atualizarPrevisao(){
+    const box = $('previsaoBox');
+    const valEl = $('previsaoValor');
+    const detEl = $('previsaoDet');
+
+    // Se está marcado como folga, esconde a previsão
+    if($('folga').checked){
+      box.classList.add('inativo');
+      valEl.textContent = '—:—';
+      detEl.textContent = 'Dia marcado como folga';
+      return;
+    }
+
+    const p = calcularSaidaPrevista();
+    if(!p){
+      box.classList.add('inativo');
+      valEl.textContent = '—:—';
+      detEl.textContent = 'Informe a entrada para calcular';
+      return;
+    }
+
+    box.classList.remove('inativo');
+    valEl.textContent = p.hhmm;
+    detEl.innerHTML =
+      `Entrada <strong>${$('entrada').value}</strong>` +
+      ` + Jornada <strong>${minParaHhmm(p.jornada)}</strong>` +
+      ` + Almoço <strong>${minParaHhmm(p.duracaoAlmoco)}</strong>`;
+  }
+
   /* ---------------- CALENDÁRIO ---------------- */
   function renderCalendario(){
     $('calTitulo').textContent = MESES[calMes] + ' ' + calAno;
 
     const primeiroDia = new Date(calAno, calMes, 1);
     const diasNoMes = new Date(calAno, calMes + 1, 0).getDate();
-    const diaSemanaInicio = primeiroDia.getDay(); // 0=Dom
+    const diaSemanaInicio = primeiroDia.getDay();
     const dataForm = $('data').value;
     const hoje = hojeISO();
 
     let html = '';
-    // Dias vazios antes do dia 1
     for(let i = 0; i < diaSemanaInicio; i++){
       html += '<div class="cal-dia vazio"></div>';
     }
-    // Dias do mês
     for(let d = 1; d <= diasNoMes; d++){
       const iso = `${calAno}-${pad(calMes + 1)}-${pad(d)}`;
       const reg = registros.find(r => r.data === iso);
@@ -586,7 +674,6 @@
 
       html += `<button type="button" class="${cls}" data-data="${iso}">${d}</button>`;
     }
-
     $('calGrid').innerHTML = html;
   }
 
@@ -608,23 +695,24 @@
     carregarDiaNoForm();
     renderCalendario();
   });
-
   $('calGrid').addEventListener('click', e => {
     const btn = e.target.closest('button.cal-dia');
-    if(!btn) return;
-    const iso = btn.dataset.data;
-    if(!iso) return;
-    $('data').value = iso;
+    if(!btn || !btn.dataset.data) return;
+    $('data').value = btn.dataset.data;
     carregarDiaNoForm();
     renderCalendario();
-    // Rola suavemente até o formulário (só se estiver fora da viewport)
-    const formRect = $('form').getBoundingClientRect();
-    if(formRect.top < 0 || formRect.top > window.innerHeight){
+    const rect = $('form').getBoundingClientRect();
+    if(rect.top < 0 || rect.top > window.innerHeight){
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
 
   /* ---------------- FORMULÁRIO ---------------- */
+  function limparAlertas(){
+    alertasMostrados = {};
+    document.querySelectorAll('#form input[type=time]').forEach(i => i.classList.remove('divergente'));
+  }
+
   function carregarDiaNoForm(){
     const iso = $('data').value;
     if(!iso) return;
@@ -651,16 +739,16 @@
       $('btnSalvar').textContent = 'Salvar lançamento';
       $('btnExcluir').classList.add('oculto');
     }
-    forcarSalvar = false;
+    limparAlertas();
+    atualizarPrevisao();
   }
 
-  // Carrega o dia quando muda a data
   $('data').addEventListener('change', () => {
     carregarDiaNoForm();
     renderCalendario();
   });
 
-  // Auto-preenche a volta do almoço (+1h) SOMENTE se estiver vazio
+  // Auto-preenche a volta do almoço (+1h) apenas se estiver vazio
   $('saidaAlmoco').addEventListener('change', function(){
     if(this.value && !$('voltaAlmoco').value){
       const [h, m] = this.value.split(':').map(Number);
@@ -669,14 +757,70 @@
     }
   });
 
-  // Botão "Novo (limpar)"
+  /* ---------------- Notificação em tempo real ---------------- */
+  // Bloco que valida cada campo de horário e mostra o GIF imediatamente
+  const inputsTempo = document.querySelectorAll('#form input[type=time]');
+  inputsTempo.forEach(inp => {
+    // Atualiza a previsão enquanto digita
+    inp.addEventListener('input', atualizarPrevisao);
+
+    // Dispara a notificação ao sair do campo (blur / change)
+    inp.addEventListener('change', function(){
+      const campo = this.id;
+      const valor = this.value;
+
+      // Atualiza a previsão novamente após preencher
+      atualizarPrevisao();
+
+      if(!valor){ return; }
+
+      const chave = campo + ':' + valor;
+      if(alertasMostrados[chave]) return;
+
+      const detalhes = [];
+
+      // 1) Divergência em relação ao previsto configurado
+      const prev = config[CONFIG_KEY[campo]];
+      if(prev && valor !== prev){
+        detalhes.push(`${LABELS[campo]}: <strong>${valor}</strong> (previsto ${prev})`);
+        this.classList.add('divergente');
+      } else {
+        this.classList.remove('divergente');
+      }
+
+      // 2) Almoço com duração diferente de 1h (validado ao preencher a volta)
+      if(campo === 'voltaAlmoco' && $('saidaAlmoco').value){
+        const dur = hhmmParaMin(valor) - hhmmParaMin($('saidaAlmoco').value);
+        if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
+          detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
+          this.classList.add('divergente');
+        }
+      }
+
+      if(detalhes.length){
+        alertasMostrados[chave] = true;
+        $('textoAlerta').innerHTML = detalhes.join('<br>');
+        $('alertaGif').classList.remove('oculto');
+      }
+    });
+  });
+
+  $('btnFecharAlerta').addEventListener('click', () => {
+    $('alertaGif').classList.add('oculto');
+  });
+
+  $('btnExtraOk').addEventListener('click', () => {
+    $('alertaExtra').classList.add('oculto');
+  });
+
+  // Botão Novo (limpar)
   $('btnNovo').addEventListener('click', () => {
     $('data').value = hojeISO();
     carregarDiaNoForm();
     renderCalendario();
   });
 
-  // Botão "Excluir este dia"
+  // Botão Excluir
   $('btnExcluir').addEventListener('click', () => {
     if(!editandoId) return;
     const r = registros.find(x => x.id === editandoId);
@@ -689,27 +833,8 @@
     }
   });
 
-  /* ---------------- Validação ---------------- */
-  function verificarDivergencias(r){
-    const detalhes = [];
-    if(r.folga) return detalhes;
-
-    ORDEM.forEach(c => {
-      const prev = config[CONFIG_KEY[c]];
-      if(prev && r[c] && r[c] !== prev){
-        detalhes.push(`${LABELS[c]}: ${r[c]} (previsto ${prev})`);
-      }
-    });
-
-    // Valida almoço = 1h
-    if(r.saidaAlmoco && r.voltaAlmoco){
-      const dur = hhmmParaMin(r.voltaAlmoco) - hhmmParaMin(r.saidaAlmoco);
-      if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
-        detalhes.push(`Almoço: ${minParaHhmm(Math.abs(dur))} (esperado 01:00)`);
-      }
-    }
-    return detalhes;
-  }
+  // Checkbox folga
+  $('folga').addEventListener('change', atualizarPrevisao);
 
   /* ---------------- Submit ---------------- */
   $('form').addEventListener('submit', e => {
@@ -735,18 +860,7 @@
       return;
     }
 
-    // 1) Verifica divergências de horário
-    if(!forcarSalvar){
-      const detalhes = verificarDivergencias(novoReg);
-      if(detalhes.length){
-        window.__pending = novoReg;
-        $('textoAlerta').innerHTML = 'Foram detectadas divergências:<br><small>' + detalhes.join('<br>') + '</small>';
-        $('alertaGif').classList.remove('oculto');
-        return;
-      }
-    }
-
-    // 2) Verifica jornada excedida
+    // Verifica jornada excedida (informativo)
     let mostrarExtra = false;
     let trab = 0, extra = 0;
     if(diaCompleto(novoReg) && !novoReg.folga){
@@ -771,40 +885,18 @@
   function salvarRegistro(novoReg){
     if(editandoId){
       const i = registros.findIndex(r => r.id === editandoId);
-      if(i > -1){
-        registros[i] = Object.assign({ id: editandoId }, novoReg);
-      }
+      if(i > -1) registros[i] = Object.assign({ id: editandoId }, novoReg);
     } else {
       novoReg.id = uid();
       registros.push(novoReg);
     }
     persistir();
-    forcarSalvar = false;
 
-    // Após salvar, limpa o form mas mantém a data para conferência
     const dataAtual = $('data').value;
-    editandoId = registros.find(r => r.data === dataAtual)?.id || null;
+    editandoId = (registros.find(r => r.data === dataAtual) || {}).id || null;
     carregarDiaNoForm();
     render();
   }
-
-  // Modal 1
-  $('btnFecharAlerta').addEventListener('click', () => {
-    $('alertaGif').classList.add('oculto');
-    window.__pending = null;
-    forcarSalvar = false;
-  });
-  $('btnSalvarForcado').addEventListener('click', () => {
-    $('alertaGif').classList.add('oculto');
-    forcarSalvar = true;
-    // Reenvia o form para salvar de fato
-    $('form').dispatchEvent(new Event('submit'));
-  });
-
-  // Modal 2
-  $('btnExtraOk').addEventListener('click', () => {
-    $('alertaExtra').classList.add('oculto');
-  });
 
   /* ---------------- Configurações ---------------- */
   function atualizarVoltaAlmocoPrev(){
@@ -820,21 +912,23 @@
     config.saidaAlmocoPrev = $('saidaAlmocoPrev').value;
     config.voltaAlmocoPrev = $('voltaAlmocoPrev').value;
     persistir();
+    limparAlertas();
+    atualizarPrevisao();
   });
   ['entradaPrev','saidaPrev'].forEach(id => {
     $(id).addEventListener('change', () => {
       config[id] = $(id).value;
       persistir();
+      limparAlertas();
     });
   });
 
   $('jornada').addEventListener('change', e => {
     if(!e.target.value){ e.target.value = minParaHhmm(config.jornada); return; }
     config.jornada = hhmmParaMin(e.target.value);
-    registros.forEach(r => {
-      if(!r.folga) r.esperado = config.jornada;
-    });
+    registros.forEach(r => { if(!r.folga) r.esperado = config.jornada; });
     persistir();
+    atualizarPrevisao();
     render();
   });
 
@@ -897,7 +991,6 @@
     renderCalendario();
   }
 
-  // Clique na linha do histórico abre o dia no formulário
   $('corpo').addEventListener('click', e => {
     const btnExc = e.target.closest('button[data-excluir]');
     if(btnExc){
@@ -907,14 +1000,11 @@
       if(r && confirm('Excluir o lançamento de ' + fmtData(r.data) + '?')){
         registros = registros.filter(x => x.id !== id);
         persistir();
-        if(editandoId === id){
-          carregarDiaNoForm();
-        }
+        if(editandoId === id) carregarDiaNoForm();
         render();
       }
       return;
     }
-
     const tr = e.target.closest('tr[data-editar]');
     if(tr){
       const id = tr.dataset.editar;
@@ -930,7 +1020,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 6,
+      app: 'banco-de-horas', versao: 7,
       exportadoEm: new Date().toISOString(),
       config, registros
     };
@@ -1013,12 +1103,10 @@
   $('voltaAlmocoPrev').value = config.voltaAlmocoPrev || '13:00';
   $('saidaPrev').value       = config.saidaPrev || '17:00';
 
-  // Calendário inicia no mês atual
   const hj = new Date();
   calAno = hj.getFullYear();
   calMes = hj.getMonth();
 
-  // Form inicia com a data de hoje
   $('data').value = hojeISO();
   carregarDiaNoForm();
   render();
