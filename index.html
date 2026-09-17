@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Banco de Horas</title>
+<!-- Preload dos GIFs para carregar mais rápido quando a notificação disparar -->
+<link rel="preload" as="image" href="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif">
+<link rel="preload" as="image" href="https://media1.tenor.com/m/vK60kNp1grIAAAAC/treadmill-treat.gif">
+<link rel="preload" as="image" href="https://media1.tenor.com/m/1IVdunRUvWMAAAAC/shia-labeouf-clapping.gif">
 <style>
   *{box-sizing:border-box}
 
@@ -348,6 +352,13 @@
   }
   .modal-sucesso h3{color:var(--pos)}
 
+  /* Modal horas extras — destaque laranja (esteira) */
+  .modal-extra .modal-conteudo{
+    border:1px solid rgba(245,158,11,.45);
+    box-shadow:0 0 0 1px rgba(245,158,11,.15),0 20px 50px -12px rgba(245,158,11,.35);
+  }
+  .modal-extra h3{color:var(--laranja)}
+
   .toast-container{
     position:fixed;top:24px;right:24px;
     z-index:1100;display:flex;flex-direction:column;gap:10px;
@@ -550,14 +561,14 @@
   </div>
 </div>
 
-<!-- MODAL 2: JORNADA EXCEDIDA -->
-<div id="alertaExtra" class="modal oculto">
+<!-- MODAL 2: JORNADA EXCEDIDA (GIF da esteira) -->
+<div id="alertaExtra" class="modal modal-extra oculto">
   <div class="modal-conteudo">
     <div class="gif-wrap" id="gifWrapExtra">
       <img src="https://media1.tenor.com/m/vK60kNp1grIAAAAC/treadmill-treat.gif" alt="Alerta de jornada excedida">
       <div class="gif-fallback">🏃</div>
     </div>
-    <h3>🏃 Você trabalhou mais que o previsto!</h3>
+    <h3>🏃 Você fez mais horas do que devia!</h3>
     <p id="textoExtra"></p>
     <div class="acoes" style="justify-content:center">
       <button class="btn primario" id="btnExtraOk">Entendi</button>
@@ -603,7 +614,7 @@
   };
   let editandoId = null;
   let calAno, calMes;
-  let ultimoEstadoMostrado = ''; // assinatura do último estado que disparou alerta
+  let ultimoEstadoMostrado = '';
   let debounceTimers = {};
 
   /* ---------------- Utilidades ---------------- */
@@ -868,14 +879,13 @@
       ` + Almoço <strong>${minParaHhmm(p.duracaoAlmoco)}</strong>`;
   }
 
-  /* ---------------- Marca campos corretos/divergentes ---------------- */
+  /* ---------------- Marca campos ---------------- */
   function marcarCorretos(){
     const entrada = $('entrada').value;
     const saida = $('saida').value;
     const saidaAlmoco = $('saidaAlmoco').value;
     const voltaAlmoco = $('voltaAlmoco').value;
 
-    // Entrada
     const elEn = $('entrada');
     elEn.classList.remove('correto', 'divergente');
     if(entrada){
@@ -883,7 +893,6 @@
       else elEn.classList.add('divergente');
     }
 
-    // Saída
     const elSa = $('saida');
     elSa.classList.remove('correto', 'divergente');
     if(saida){
@@ -891,7 +900,6 @@
       else elSa.classList.add('divergente');
     }
 
-    // Almoço (dois campos juntos)
     const elSaA = $('saidaAlmoco');
     const elVoA = $('voltaAlmoco');
     elSaA.classList.remove('correto', 'divergente');
@@ -910,10 +918,6 @@
   }
 
   /* ---------------- VERIFICAÇÃO CENTRAL ---------------- */
-  // Avalia o estado atual do formulário:
-  // 1) Se há divergências → mostra o GIF do The Rock
-  // 2) Se tudo ok e passou da jornada → mostra o GIF da esteira
-  // 3) Se tudo ok e não passou → mostra o GIF de sucesso
   function verificarEstado(){
     if($('folga').checked) return;
 
@@ -922,18 +926,15 @@
     const saidaAlmoco = $('saidaAlmoco').value;
     const voltaAlmoco = $('voltaAlmoco').value;
 
-    // Atualiza sempre as bordas primeiro
     marcarCorretos();
 
-    // Monta assinatura única do estado atual
     const sig = `${entrada}|${saidaAlmoco}|${voltaAlmoco}|${saida}`;
 
-    /* --- Verifica divergências de cada campo --- */
+    /* --- Divergências --- */
     const detalhes = [];
     let tituloAlerta = '⏰ Horário fora do previsto!';
     let msgToast = '';
 
-    // Entrada em atraso/adiantada
     if(entrada && config.entradaPrev && entrada !== config.entradaPrev){
       const diff = hhmmParaMin(entrada) - hhmmParaMin(config.entradaPrev);
       if(diff > 0){
@@ -947,7 +948,6 @@
       }
     }
 
-    // Saída em atraso/adiantada
     if(saida && config.saidaPrev && saida !== config.saidaPrev){
       const diff = hhmmParaMin(saida) - hhmmParaMin(config.saidaPrev);
       if(diff > 0){
@@ -961,7 +961,6 @@
       }
     }
 
-    // Almoço fora de 1h
     if(saidaAlmoco && voltaAlmoco){
       const dur = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
       if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
@@ -971,7 +970,6 @@
       }
     }
 
-    // Se há divergências → mostra The Rock
     if(detalhes.length){
       if(ultimoEstadoMostrado !== 'div:' + sig){
         ultimoEstadoMostrado = 'div:' + sig;
@@ -985,14 +983,12 @@
       return;
     }
 
-    // Sem divergências — só prossegue se os 4 campos estão preenchidos
     if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida) return;
 
-    // Todos preenchidos e corretos — verifica jornada
     const trab = trabalhadoMin({entrada, saidaAlmoco, voltaAlmoco, saida});
 
     if(trab > config.jornada){
-      // Mostra esteira
+      // JORNADA EXCEDIDA → GIF DA ESTEIRA
       if(ultimoEstadoMostrado !== 'extra:' + sig){
         ultimoEstadoMostrado = 'extra:' + sig;
         $('alertaGif').classList.add('oculto');
@@ -1006,7 +1002,7 @@
         mostrarToast('Horas extras!', `+${minParaHhmm(extra)} além da jornada`, '🏃');
       }
     } else {
-      // Mostra sucesso
+      // SUCESSO → GIF DO SHIA
       if(ultimoEstadoMostrado !== 'sucesso:' + sig){
         ultimoEstadoMostrado = 'sucesso:' + sig;
         $('alertaGif').classList.add('oculto');
@@ -1126,7 +1122,6 @@
       $('btnSalvar').textContent = 'Salvar lançamento';
       $('btnExcluir').classList.add('oculto');
     }
-    // Reset do cache de estado
     ultimoEstadoMostrado = '';
     atualizarPrevisao();
     marcarCorretos();
@@ -1137,28 +1132,21 @@
     renderCalendario();
   });
 
-  // Auto-preenche a volta do almoço (+1h) apenas se estiver vazio
   $('saidaAlmoco').addEventListener('change', function(){
     if(this.value && !$('voltaAlmoco').value){
       const [h, m] = this.value.split(':').map(Number);
       const dt = new Date(); dt.setHours(h, m + 60, 0, 0);
       $('voltaAlmoco').value = pad(dt.getHours()) + ':' + pad(dt.getMinutes());
     }
-    // Pequeno delay para deixar o auto-preenchimento concluir
     setTimeout(verificarEstado, 0);
   });
 
-  /* ---------------- Listeners dos horários ---------------- */
-  // Estratégia robusta:
-  // - `input`: dispara enquanto digita; só avalia se o valor é HH:MM completo
-  // - `change`: dispara quando o valor é confirmado (picker fecha, blur, Enter)
-  // - `blur`: fallback final
+  /* ---------------- Listeners ---------------- */
   document.querySelectorAll('#form input[type=time]').forEach(inp => {
     inp.addEventListener('input', function(){
       atualizarPrevisao();
       const el = this;
       const v = el.value;
-      // Avalia apenas quando o valor está completo (formato HH:MM)
       if(regexHora.test(v)){
         clearTimeout(debounceTimers[el.id]);
         debounceTimers[el.id] = setTimeout(() => {
@@ -1169,7 +1157,6 @@
 
     inp.addEventListener('change', function(){
       atualizarPrevisao();
-      // Cancela debounce pendente e avalia já
       clearTimeout(debounceTimers[this.id]);
       verificarEstado();
     });
@@ -1243,7 +1230,6 @@
       if(painelHist) painelHist.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 120);
 
-    // Reavalia após salvar (para o caso de ter alterado algo)
     setTimeout(verificarEstado, 250);
   });
 
@@ -1397,7 +1383,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 14,
+      app: 'banco-de-horas', versao: 15,
       exportadoEm: new Date().toISOString(),
       config, registros
     };
