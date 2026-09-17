@@ -47,17 +47,29 @@
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
 
-  /* ---------- Aviso de armazenamento indisponível ---------- */
+  /* ---------- Aviso de armazenamento ---------- */
   .aviso-storage{
     display:flex;gap:12px;align-items:flex-start;
     background:rgba(239,68,68,.10);
     border:1px solid rgba(239,68,68,.5);
     border-left:4px solid var(--neg);
     border-radius:12px;padding:14px 18px;margin:0 0 22px;
-    color:var(--txt);line-height:1.5;font-size:.88rem;
+    color:var(--txt);line-height:1.55;font-size:.88rem;
   }
-  .aviso-storage .ico{font-size:1.3rem;line-height:1}
+  .aviso-storage.alerta-medio{
+    background:rgba(245,158,11,.10);
+    border-color:rgba(245,158,11,.5);
+    border-left-color:var(--laranja);
+  }
+  .aviso-storage .ico{font-size:1.3rem;line-height:1.2;flex-shrink:0}
   .aviso-storage strong{color:var(--neg)}
+  .aviso-storage.alerta-medio strong{color:var(--laranja)}
+  .aviso-storage code{
+    background:var(--card2);border:1px solid var(--borda);
+    padding:1px 6px;border-radius:4px;font-size:.82rem;
+  }
+  .aviso-storage .btns{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .aviso-storage .btns .btn{padding:7px 12px;font-size:.82rem}
 
   /* ---------- Faixa do período de fechamento ---------- */
   .faixa-ponto{
@@ -116,7 +128,6 @@
   }
   .btn-tema:hover{background:var(--hover-btn)}
 
-  /* ---------- Indicador de salvamento ---------- */
   .status-salvo{
     display:inline-flex;align-items:center;gap:6px;
     font-size:.74rem;font-weight:600;
@@ -138,7 +149,6 @@
   }
   .topo-acoes{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 
-  /* ---------- Card do saldo ---------- */
   .saldo-card{
     display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between;
     background:linear-gradient(135deg,var(--card2),var(--card));
@@ -154,7 +164,6 @@
   .stats{display:flex;gap:26px;flex-wrap:wrap}
   .stats strong{font-size:1.05rem;font-variant-numeric:tabular-nums}
 
-  /* ---------- Formulário ---------- */
   .form-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .form-header h2{margin:0}
   .agora{
@@ -218,7 +227,6 @@
   .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
   .oculto{display:none !important}
 
-  /* ---------- CALENDÁRIO ---------- */
   .cal-header{
     display:flex;align-items:center;justify-content:space-between;
     margin-bottom:14px;gap:8px;
@@ -292,7 +300,6 @@
   .lg-incompleto{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.5)!important}
   .lg-folga{background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5)!important}
 
-  /* ---------- Tabela ---------- */
   .tabela-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--borda)}
   table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
   th{
@@ -313,7 +320,6 @@
   .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
   .nota{color:var(--mut);font-size:.78rem;margin:12px 0 0;line-height:1.5}
 
-  /* ---------- Modal ---------- */
   .modal{
     position:fixed;top:0;left:0;width:100%;height:100%;
     background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;
@@ -371,17 +377,13 @@
     </div>
   </header>
 
-  <!-- AVISO: ARMAZENAMENTO INDISPONÍVEL -->
+  <!-- AVISO: ARMAZENAMENTO -->
   <div class="aviso-storage oculto" id="avisoStorage">
-    <span class="ico">⚠️</span>
+    <span class="ico" id="avisoIcone">⚠️</span>
     <div>
-      <strong>Armazenamento do navegador indisponível.</strong>
-      <p style="margin:6px 0 0">
-        Seus lançamentos <strong>NÃO serão salvos</strong> entre recarregamentos.
-        Isso costuma acontecer em modo anônimo, com cookies bloqueados, ou abrindo o arquivo
-        diretamente via <code>file://</code> em alguns navegadores.
-        Use a seção <strong>Backup dos dados</strong> para exportar seus lançamentos manualmente.
-      </p>
+      <strong id="avisoTitulo">Atenção ao armazenamento</strong>
+      <p style="margin:6px 0 0" id="avisoTexto"></p>
+      <div class="btns" id="avisoBtns"></div>
     </div>
   </div>
 
@@ -408,7 +410,6 @@
 
   <div class="layout-2col">
 
-    <!-- COLUNA ESQUERDA -->
     <div class="col-esquerda">
 
       <section class="painel">
@@ -492,7 +493,6 @@
 
     </div>
 
-    <!-- COLUNA DIREITA -->
     <aside class="col-direita">
 
       <section class="painel">
@@ -521,8 +521,7 @@
           <input type="file" id="arquivo" accept="application/json" class="oculto">
         </div>
         <p class="nota" style="margin-top:12px">
-          💾 Os lançamentos são salvos automaticamente no navegador a cada alteração.
-          Faça backups periódicos usando o botão <strong>Exportar</strong>.
+          💾 Os lançamentos são salvos automaticamente. Faça backups periódicos usando <strong>Exportar</strong>.
         </p>
       </section>
 
@@ -600,7 +599,69 @@
   let calAno, calMes;
   let alertasMostrados = {};
   let estadoSucessoAnterior = false;
-  let storageOK = false;
+
+  /* =========================================================
+     CAMADA DE ARMAZENAMENTO DUPLA (localStorage + sessionStorage)
+     Escreve nos dois; lê do localStorage e, se vazio, do sessionStorage.
+     Isso torna a persistência resiliente a bloqueios isolados de um dos dois.
+     ========================================================= */
+  const Storage = {
+    lsOK: false,
+    ssOK: false,
+
+    init(){
+      this.lsOK = this._test('localStorage');
+      this.ssOK = this._test('sessionStorage');
+      return { ls: this.lsOK, ss: this.ssOK };
+    },
+
+    _test(nome){
+      try{
+        const s = window[nome];
+        if(!s) return false;
+        const k = '__bh_test__' + Math.random();
+        const v = 'ok-' + Date.now();
+        s.setItem(k, v);
+        const r = s.getItem(k);
+        s.removeItem(k);
+        return r === v;
+      }catch(e){ return false; }
+    },
+
+    set(chave, valor){
+      let gravou = false;
+      if(this.lsOK){
+        try{ localStorage.setItem(chave, valor); gravou = true; }catch(e){}
+      }
+      if(this.ssOK){
+        try{ sessionStorage.setItem(chave, valor); gravou = true; }catch(e){}
+      }
+      return gravou;
+    },
+
+    get(chave){
+      if(this.lsOK){
+        try{
+          const v = localStorage.getItem(chave);
+          if(v !== null) return v;
+        }catch(e){}
+      }
+      if(this.ssOK){
+        try{
+          const v = sessionStorage.getItem(chave);
+          if(v !== null) return v;
+        }catch(e){}
+      }
+      return null;
+    },
+
+    remove(chave){
+      if(this.lsOK){ try{ localStorage.removeItem(chave); }catch(e){} }
+      if(this.ssOK){ try{ sessionStorage.removeItem(chave); }catch(e){} }
+    },
+
+    disponivel(){ return this.lsOK || this.ssOK; }
+  };
 
   /* ---------------- Utilidades ---------------- */
   const pad = n => String(n).padStart(2,'0');
@@ -632,19 +693,7 @@
     return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
   };
 
-  /* ---------------- Detecção e indicador de armazenamento ---------------- */
-  function testarArmazenamento(){
-    try{
-      const k = '__bh_test__' + Date.now();
-      localStorage.setItem(k, 'ok');
-      const v = localStorage.getItem(k);
-      localStorage.removeItem(k);
-      return v === 'ok';
-    }catch(e){
-      return false;
-    }
-  }
-
+  /* ---------------- Status e avisos ---------------- */
   function setStatusSalvo(texto, tipo){
     const el = $('statusSalvo');
     if(!el) return;
@@ -654,11 +703,63 @@
     else if(tipo === 'salvando') el.classList.add('salvando');
   }
 
-  function mostrarAvisoStorage(indisponivel){
+  function mostrarAvisoStorage(opcoes){
     const el = $('avisoStorage');
-    if(!el) return;
-    if(indisponivel) el.classList.remove('oculto');
-    else el.classList.add('oculto');
+    const icone = $('avisoIcone');
+    const titulo = $('avisoTitulo');
+    const texto = $('avisoTexto');
+    const btns = $('avisoBtns');
+
+    if(!opcoes || opcoes.nivel === 'ok'){
+      el.classList.add('oculto');
+      return;
+    }
+    el.classList.remove('oculto');
+    el.classList.toggle('alerta-medio', opcoes.nivel === 'aviso');
+
+    if(opcoes.nivel === 'aviso'){
+      icone.textContent = '⚠️';
+      titulo.textContent = 'Persistência limitada';
+    } else {
+      icone.textContent = '🚫';
+      titulo.textContent = 'Sem armazenamento persistente';
+    }
+    texto.innerHTML = opcoes.mensagem;
+    btns.innerHTML = '';
+
+    if(opcoes.mostrarRecuperar){
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = '🔄 Tentar recuperar do sessionStorage';
+      b.addEventListener('click', tentarRecuperar);
+      btns.appendChild(b);
+    }
+    if(opcoes.mostrarExportar){
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = '⬇ Exportar backup agora';
+      b.addEventListener('click', () => $('btnExportar').click());
+      btns.appendChild(b);
+    }
+  }
+
+  function tentarRecuperar(){
+    try{
+      let raw = null;
+      try{ raw = sessionStorage.getItem(LS_REG); }catch(e){}
+      if(!raw){ try{ raw = localStorage.getItem(LS_REG); }catch(e){} }
+      if(!raw){ alert('Nada encontrado nos storages do navegador.'); return; }
+      const arr = JSON.parse(raw);
+      if(!Array.isArray(arr) || !arr.length){ alert('Nenhum lançamento encontrado para recuperar.'); return; }
+      registros = arr.filter(x => x && typeof x.data === 'string')
+                     .map(normalizarRegistro);
+      try{ persistir(); }catch(e){}
+      carregarDiaNoForm();
+      render();
+      alert('Recuperados ' + registros.length + ' lançamento(s).');
+    }catch(e){
+      alert('Não foi possível recuperar: ' + (e.message || e));
+    }
   }
 
   /* ---------------- Cálculos ---------------- */
@@ -689,32 +790,46 @@
     return totalTrab - totalEsp;
   }
 
-  /* ---------------- Persistência robusta ---------------- */
+  function normalizarRegistro(x){
+    return {
+      id: x.id || uid(),
+      data: x.data,
+      entrada: x.entrada || null,
+      saidaAlmoco: x.saidaAlmoco || null,
+      voltaAlmoco: x.voltaAlmoco || null,
+      saida: x.saida || null,
+      folga: !!x.folga,
+      esperado: typeof x.esperado === 'number' ? x.esperado : (x.folga ? 0 : 480)
+    };
+  }
+
+  /* ---------------- Persistência ---------------- */
   function persistir(){
-    if(!storageOK){
-      throw new Error('Armazenamento do navegador indisponível');
+    if(!Storage.disponivel()){
+      throw new Error('Nenhum armazenamento disponível (localStorage/sessionStorage)');
     }
     const payloadReg = JSON.stringify(registros);
     const payloadCfg = JSON.stringify(config);
 
-    localStorage.setItem(LS_REG, payloadReg);
-    localStorage.setItem(LS_CFG, payloadCfg);
+    const okReg = Storage.set(LS_REG, payloadReg);
+    const okCfg = Storage.set(LS_CFG, payloadCfg);
 
-    // Verifica se realmente gravou
-    if(localStorage.getItem(LS_REG) !== payloadReg){
-      throw new Error('Falha ao verificar a gravação dos registros');
+    if(!okReg || !okCfg){
+      throw new Error('Falha ao gravar no armazenamento');
     }
-    if(localStorage.getItem(LS_CFG) !== payloadCfg){
-      throw new Error('Falha ao verificar a gravação das configurações');
+
+    // Verificação: lê de volta e compara
+    const verif = Storage.get(LS_REG);
+    if(verif !== payloadReg){
+      throw new Error('Falha ao verificar gravação dos registros');
     }
   }
 
-  // Wrapper que mostra o status visual
   function persistirComStatus(){
     setStatusSalvo('💾 Salvando...', 'salvando');
     try{
       persistir();
-      setTimeout(() => setStatusSalvo('✓ Salvo automaticamente'), 300);
+      setTimeout(() => setStatusSalvo('✓ Salvo automaticamente'), 250);
       return true;
     }catch(err){
       setStatusSalvo('⚠ Falha ao salvar', 'erro');
@@ -724,29 +839,51 @@
   }
 
   function carregar(){
-    storageOK = testarArmazenamento();
-    mostrarAvisoStorage(!storageOK);
-    if(!storageOK){
+    // Testa ambas
+    const st = Storage.init();
+    const isFile = location.protocol === 'file:';
+
+    if(!st.ls && !st.ss){
+      // Nenhum armazenamento
+      mostrarAvisoStorage({
+        nivel: 'grave',
+        mensagem:
+          'Seus lançamentos <strong>NÃO serão salvos</strong> entre recarregamentos. ' +
+          (isFile
+            ? 'Você está abrindo o arquivo diretamente (<code>file://</code>). ' +
+              'Isso bloqueia o armazenamento em alguns navegadores. ' +
+              'Solução: hospede o arquivo em um servidor local (ex.: <code>python -m http.server</code>) ' +
+              'ou use o botão <strong>Exportar</strong> para guardar seus dados manualmente.'
+            : 'Verifique se cookies/armazenamento estão permitidos para este site.'),
+        mostrarExportar: true
+      });
       setStatusSalvo('⚠ Sem armazenamento', 'erro');
+    } else if(!st.ls && st.ss){
+      // Só sessionStorage (não persiste entre reinícios do navegador)
+      mostrarAvisoStorage({
+        nivel: 'aviso',
+        mensagem:
+          'O <code>localStorage</code> está bloqueado, mas o <code>sessionStorage</code> está ativo. ' +
+          'Seus lançamentos sobrevivem a recarregamentos da página, <strong>mas não</strong> ' +
+          'a fechar e reabrir o navegador. Faça backups com <strong>Exportar</strong>.',
+        mostrarExportar: true
+      });
+      setStatusSalvo('✓ Salvando (sessão)', 'ok');
+    } else if(st.ls && !st.ss){
+      // Caso raro: localStorage funciona, sessionStorage não
+      // Não é problema — localStorage é o principal
+      setStatusSalvo('✓ Salvo automaticamente', 'ok');
+    } else {
+      setStatusSalvo('✓ Salvo automaticamente', 'ok');
     }
 
     // Registros
     try{
-      const raw = localStorage.getItem(LS_REG);
+      const raw = Storage.get(LS_REG);
       const r = raw ? JSON.parse(raw) : null;
       if(Array.isArray(r)){
-        registros = r
-          .filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
-          .map(x => ({
-            id: x.id || uid(),
-            data: x.data,
-            entrada: x.entrada || null,
-            saidaAlmoco: x.saidaAlmoco || null,
-            voltaAlmoco: x.voltaAlmoco || null,
-            saida: x.saida || null,
-            folga: !!x.folga,
-            esperado: typeof x.esperado === 'number' ? x.esperado : 480
-          }));
+        registros = r.filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
+                     .map(normalizarRegistro);
       }
     }catch(e){
       console.warn('Falha ao ler registros:', e);
@@ -755,7 +892,7 @@
 
     // Config
     try{
-      const raw = localStorage.getItem(LS_CFG);
+      const raw = Storage.get(LS_CFG);
       const c = raw ? JSON.parse(raw) : null;
       if(c && typeof c === 'object'){
         config = {
@@ -768,7 +905,7 @@
 
     // Tema
     let tema = null;
-    try{ tema = localStorage.getItem(LS_TEMA); }catch(e){}
+    try{ tema = Storage.get(LS_TEMA); }catch(e){}
     if(tema !== 'claro' && tema !== 'escuro'){
       tema = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
              ? 'claro' : 'escuro';
@@ -844,9 +981,9 @@
     if(dias !== 1 && dias !== 2) return;
     const hoje = hojeISO();
     let ultimo = null;
-    try{ ultimo = localStorage.getItem(LS_AVISO_FECH); }catch(e){}
+    try{ ultimo = Storage.get(LS_AVISO_FECH); }catch(e){}
     if(ultimo === hoje) return;
-    try{ localStorage.setItem(LS_AVISO_FECH, hoje); }catch(e){}
+    try{ Storage.set(LS_AVISO_FECH, hoje); }catch(e){}
     const { fim } = calcularPeriodoPonto();
     const quando = (dias === 1) ? 'Falta <strong>1 dia</strong>' : 'Faltam <strong>2 dias</strong>';
     mostrarModal('alertaFechamento', 'textoFechamento',
@@ -857,7 +994,7 @@
   /* ---------------- Tema ---------------- */
   function aplicarTema(tema){
     document.documentElement.setAttribute('data-tema', tema);
-    try{ localStorage.setItem(LS_TEMA, tema); }catch(e){}
+    try{ Storage.set(LS_TEMA, tema); }catch(e){}
     const claro = tema === 'claro';
     $('iconeTema').textContent = claro ? '☀️' : '🌙';
     $('txtTema').textContent   = claro ? 'Modo escuro' : 'Modo claro';
@@ -875,7 +1012,7 @@
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
 
-  /* ---------------- Previsão de saída ---------------- */
+  /* ---------------- Previsão ---------------- */
   function calcularSaidaPrevista(){
     const entrada = $('entrada').value;
     if(!entrada) return null;
@@ -1282,7 +1419,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 9,
+      app: 'banco-de-horas', versao: 10,
       exportadoEm: new Date().toISOString(),
       config, registros
     };
@@ -1308,16 +1445,7 @@
         if(!Array.isArray(regs)) throw new Error('formato inválido');
         if(!confirm('Isso substituirá os registros atuais pelos do arquivo. Continuar?')) return;
 
-        registros = regs.filter(r => r && r.data).map(r => ({
-          id: r.id || uid(),
-          data: r.data,
-          entrada: r.entrada || null,
-          saidaAlmoco: r.saidaAlmoco || null,
-          voltaAlmoco: r.voltaAlmoco || null,
-          saida: r.saida || null,
-          folga: !!r.folga,
-          esperado: typeof r.esperado === 'number' ? r.esperado : (r.folga ? 0 : config.jornada)
-        }));
+        registros = regs.filter(r => r && r.data).map(normalizarRegistro);
 
         if(dados.config){
           config = {
@@ -1350,25 +1478,27 @@
     }
   });
 
-  /* ---------------- Rede de segurança: salvar ao sair ---------------- */
+  /* ---------------- Redes de segurança ----------------
+     1) beforeunload: salva ao sair/fechar
+     2) autosave a cada 15s: protege contra perda por travamento
+  */
   window.addEventListener('beforeunload', () => {
     try{
-      if(storageOK){
-        localStorage.setItem(LS_REG, JSON.stringify(registros));
-        localStorage.setItem(LS_CFG, JSON.stringify(config));
+      if(Storage.disponivel()){
+        Storage.set(LS_REG, JSON.stringify(registros));
+        Storage.set(LS_CFG, JSON.stringify(config));
       }
     }catch(e){}
   });
 
-  // Também salva periodicamente (a cada 20 s) como reforço
   setInterval(() => {
     try{
-      if(storageOK){
-        localStorage.setItem(LS_REG, JSON.stringify(registros));
-        localStorage.setItem(LS_CFG, JSON.stringify(config));
+      if(Storage.disponivel()){
+        Storage.set(LS_REG, JSON.stringify(registros));
+        Storage.set(LS_CFG, JSON.stringify(config));
       }
     }catch(e){}
-  }, 20000);
+  }, 15000);
 
   /* ---------------- Inicialização ---------------- */
   carregar();
