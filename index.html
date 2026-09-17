@@ -6,7 +6,6 @@
 <title>Banco de Horas</title>
 <style>
   *{box-sizing:border-box}
-
   html[data-tema="escuro"]{
     --bg:#0b1220; --bg-glow:#16233d;
     --card:#111b2e; --card2:#0e1a2e; --input:#0b1524;
@@ -16,7 +15,6 @@
     --hover:#101d33; --hover-btn:#1d2d49;
     --laranja:#f59e0b; --roxo:#8b5cf6;
   }
-
   html[data-tema="claro"]{
     --bg:#eef2f8; --bg-glow:#dbe6f7;
     --card:#ffffff; --card2:#f4f7fc; --input:#ffffff;
@@ -26,7 +24,6 @@
     --hover:#f1f5fb; --hover-btn:#e6edf7;
     --laranja:#d97706; --roxo:#7c3aed;
   }
-
   body{
     margin:0; padding:28px 16px 70px;
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
@@ -36,18 +33,14 @@
     transition:background .3s, color .3s;
   }
   .wrap{max-width:1180px;margin:0 auto}
-
   .topo{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
   h1{font-size:1.5rem;margin:0 0 6px;letter-spacing:.3px}
   .sub{margin:0 0 24px;color:var(--mut);font-size:.9rem}
   h2{font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:0 0 14px;font-weight:600}
-
   .painel{
     background:var(--card);border:1px solid var(--borda);border-radius:14px;
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
-
-  /* ---------- Aviso de armazenamento ---------- */
   .aviso-storage{
     display:flex;gap:12px;align-items:flex-start;
     background:rgba(239,68,68,.10);
@@ -61,9 +54,16 @@
     border-color:rgba(245,158,11,.5);
     border-left-color:var(--laranja);
   }
+  .aviso-storage.ok{
+    background:rgba(34,197,94,.08);
+    border-color:rgba(34,197,94,.4);
+    border-left-color:var(--pos);
+    font-size:.82rem;padding:11px 16px;
+  }
   .aviso-storage .ico{font-size:1.3rem;line-height:1.2;flex-shrink:0}
   .aviso-storage strong{color:var(--neg)}
   .aviso-storage.alerta-medio strong{color:var(--laranja)}
+  .aviso-storage.ok strong{color:var(--pos)}
   .aviso-storage code{
     background:var(--card2);border:1px solid var(--borda);
     padding:1px 6px;border-radius:4px;font-size:.82rem;
@@ -71,21 +71,23 @@
   .aviso-storage .btns{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
   .aviso-storage .btns .btn{padding:7px 12px;font-size:.82rem}
 
-  /* ---------- Faixa do período de fechamento ---------- */
+  /* ---------- FAIXA DE FECHAMENTO ---------- */
   .faixa-ponto{
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-    background:var(--card);border:1px solid var(--borda);
-    border-left:4px solid var(--azul);
-    border-radius:12px;padding:13px 18px;margin:0 0 22px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.02));
+    border:1px solid var(--borda);
+    border-left:5px solid var(--azul);
+    border-radius:12px;padding:14px 20px;margin:0 0 22px;
     font-size:.88rem;color:var(--txt);line-height:1.4;
     transition:background .3s,border-color .3s;
+    min-height:52px;
   }
-  .faixa-ponto .faixa-icone{font-size:1.05rem;line-height:1}
-  .faixa-ponto strong{color:var(--azul);font-variant-numeric:tabular-nums}
+  .faixa-ponto .faixa-icone{font-size:1.15rem;line-height:1}
+  .faixa-ponto strong{color:var(--azul);font-variant-numeric:tabular-nums;font-weight:700}
   .faixa-dias{
     margin-left:auto;font-size:.75rem;color:var(--mut);font-weight:600;
     background:var(--card2);border:1px solid var(--borda);
-    padding:5px 12px;border-radius:999px;white-space:nowrap;
+    padding:6px 14px;border-radius:999px;white-space:nowrap;
     font-variant-numeric:tabular-nums;transition:.25s;
   }
   .faixa-dias.alerta{
@@ -114,12 +116,10 @@
   .col-direita .painel:last-child{margin-bottom:0}
   .col-direita .grid{grid-template-columns:1fr;gap:10px}
   .col-direita .nota{margin-top:10px}
-
   @media (max-width: 900px){
     .layout-2col{grid-template-columns:1fr}
     .col-direita{position:static}
   }
-
   .btn-tema{
     display:inline-flex;align-items:center;gap:8px;
     border:1px solid var(--borda-input);background:var(--card);color:var(--txt);
@@ -127,7 +127,6 @@
     font-family:inherit;transition:.2s;white-space:nowrap;
   }
   .btn-tema:hover{background:var(--hover-btn)}
-
   .status-salvo{
     display:inline-flex;align-items:center;gap:6px;
     font-size:.74rem;font-weight:600;
@@ -210,7 +209,6 @@
     font-variant-numeric:tabular-nums;
   }
   .previsao-det strong{color:var(--txt);font-weight:600}
-
   .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer;margin-top:16px}
   .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
   .btn{
@@ -227,14 +225,8 @@
   .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
   .oculto{display:none !important}
 
-  .cal-header{
-    display:flex;align-items:center;justify-content:space-between;
-    margin-bottom:14px;gap:8px;
-  }
-  .cal-titulo{
-    font-size:.98rem;font-weight:700;color:var(--txt);
-    text-align:center;flex:1;letter-spacing:.3px;
-  }
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;}
+  .cal-titulo{font-size:.98rem;font-weight:700;color:var(--txt);text-align:center;flex:1;letter-spacing:.3px;}
   .cal-nav{
     border:1px solid var(--borda-input);background:var(--card2);color:var(--txt);
     width:34px;height:34px;border-radius:10px;cursor:pointer;
@@ -248,32 +240,18 @@
     font-size:.78rem;font-family:inherit;font-weight:600;transition:.15s;
   }
   .cal-hoje:hover{background:var(--hover-btn)}
-
-  .cal-diasSemana{
-    display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;
-  }
+  .cal-diasSemana{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;}
   .cal-diasSemana div{
     text-align:center;font-size:.66rem;color:var(--mut);
-    text-transform:uppercase;letter-spacing:.6px;font-weight:600;
-    padding:4px 0;
+    text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:4px 0;
   }
-  .cal-grid{
-    display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
-  }
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
   .cal-dia{
-    position:relative;
-    aspect-ratio:1;
-    border:1px solid var(--borda);
-    background:var(--card2);
-    border-radius:8px;
-    color:var(--txt);
-    font-family:inherit;
-    font-size:.82rem;
-    cursor:pointer;
+    position:relative;aspect-ratio:1;border:1px solid var(--borda);
+    background:var(--card2);border-radius:8px;color:var(--txt);
+    font-family:inherit;font-size:.82rem;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
-    transition:.15s;
-    font-variant-numeric:tabular-nums;
-    padding:0;
+    transition:.15s;font-variant-numeric:tabular-nums;padding:0;
   }
   .cal-dia.vazio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
   .cal-dia:not(.vazio):hover{background:var(--hover-btn);transform:scale(1.05)}
@@ -284,18 +262,10 @@
     content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
     width:4px;height:4px;border-radius:50%;background:var(--azul);
   }
-  .cal-dia.selecionado{
-    outline:2px solid var(--azul);outline-offset:1px;font-weight:700;
-  }
-  .cal-legenda{
-    display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;
-    font-size:.74rem;color:var(--mut);
-  }
+  .cal-dia.selecionado{outline:2px solid var(--azul);outline-offset:1px;font-weight:700;}
+  .cal-legenda{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:.74rem;color:var(--mut);}
   .cal-legenda span{display:inline-flex;align-items:center;gap:6px}
-  .cal-legenda i{
-    width:12px;height:12px;border-radius:4px;display:inline-block;
-    border:1px solid var(--borda);
-  }
+  .cal-legenda i{width:12px;height:12px;border-radius:4px;display:inline-block;border:1px solid var(--borda);}
   .lg-completo{background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.5)!important}
   .lg-incompleto{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.5)!important}
   .lg-folga{background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5)!important}
@@ -335,29 +305,14 @@
     from{opacity:0;transform:scale(.95) translateY(10px)}
     to{opacity:1;transform:scale(1) translateY(0)}
   }
-  .modal-conteudo img{
-    width:100%;max-width:320px;border-radius:12px;margin-bottom:16px;
-    border:1px solid var(--borda);
-  }
+  .modal-conteudo img{width:100%;max-width:320px;border-radius:12px;margin-bottom:16px;border:1px solid var(--borda);}
   .modal-conteudo h3{margin:0 0 8px;font-size:1.1rem;color:var(--txt)}
   .modal-conteudo p{margin:0 0 20px;font-size:.9rem;color:var(--mut);line-height:1.5}
-
-  .modal-sucesso .modal-conteudo{
-    border:1px solid rgba(34,197,94,.4);
-    box-shadow:0 0 0 1px rgba(34,197,94,.15),0 20px 50px -12px rgba(34,197,94,.35);
-  }
+  .modal-sucesso .modal-conteudo{border:1px solid rgba(34,197,94,.4);box-shadow:0 0 0 1px rgba(34,197,94,.15),0 20px 50px -12px rgba(34,197,94,.35);}
   .modal-sucesso h3{color:var(--pos)}
-
-  .modal-fechamento .modal-conteudo{
-    border:1px solid rgba(245,158,11,.45);
-    box-shadow:0 0 0 1px rgba(245,158,11,.15),0 20px 50px -12px rgba(245,158,11,.4);
-  }
+  .modal-fechamento .modal-conteudo{border:1px solid rgba(245,158,11,.45);box-shadow:0 0 0 1px rgba(245,158,11,.15),0 20px 50px -12px rgba(245,158,11,.4);}
   .modal-fechamento h3{color:var(--laranja)}
-
-  .modal-saldo .modal-conteudo{
-    border:1px solid rgba(59,130,246,.45);
-    box-shadow:0 0 0 1px rgba(59,130,246,.15),0 20px 50px -12px rgba(59,130,246,.4);
-  }
+  .modal-saldo .modal-conteudo{border:1px solid rgba(59,130,246,.45);box-shadow:0 0 0 1px rgba(59,130,246,.15),0 20px 50px -12px rgba(59,130,246,.4);}
   .modal-saldo h3{color:var(--azul)}
 </style>
 </head>
@@ -377,7 +332,6 @@
     </div>
   </header>
 
-  <!-- AVISO: ARMAZENAMENTO -->
   <div class="aviso-storage oculto" id="avisoStorage">
     <span class="ico" id="avisoIcone">⚠️</span>
     <div>
@@ -394,7 +348,6 @@
     <span class="faixa-dias" id="diasFechamento">—</span>
   </div>
 
-  <!-- SALDO EM DESTAQUE -->
   <div class="saldo-card" id="saldoCard">
     <div>
       <span class="rotulo">Saldo do banco de horas</span>
@@ -409,9 +362,7 @@
   </div>
 
   <div class="layout-2col">
-
     <div class="col-esquerda">
-
       <section class="painel">
         <div class="form-header">
           <h2 id="tituloForm">Novo lançamento</h2>
@@ -425,22 +376,17 @@
             <div><label for="voltaAlmoco">Volta almoço</label><input type="time" id="voltaAlmoco"></div>
             <div><label for="saida">Saída</label><input type="time" id="saida"></div>
           </div>
-
           <div class="previsao-saida inativo" id="previsaoBox">
             <div>
               <span class="rotulo">Saída prevista</span>
               <div class="previsao-valor" id="previsaoValor">—:—</div>
             </div>
-            <div class="previsao-det" id="previsaoDet">
-              Informe a entrada para calcular
-            </div>
+            <div class="previsao-det" id="previsaoDet">Informe a entrada para calcular</div>
           </div>
-
           <label class="check">
             <input type="checkbox" id="folga">
             Folga / feriado (não exigir jornada neste dia)
           </label>
-
           <div class="acoes">
             <button type="submit" class="btn primario" id="btnSalvar">Salvar lançamento</button>
             <button type="button" class="btn" id="btnNovo">Novo (limpar)</button>
@@ -475,14 +421,8 @@
           <table>
             <thead>
               <tr>
-                <th>Data</th>
-                <th>Entrada</th>
-                <th>Saí. almoço</th>
-                <th>Volta</th>
-                <th>Saída</th>
-                <th>Trabalhado</th>
-                <th>Saldo</th>
-                <th></th>
+                <th>Data</th><th>Entrada</th><th>Saí. almoço</th><th>Volta</th>
+                <th>Saída</th><th>Trabalhado</th><th>Saldo</th><th></th>
               </tr>
             </thead>
             <tbody id="corpo"></tbody>
@@ -490,11 +430,9 @@
         </div>
         <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias parciais aparecem em laranja. Clique em uma linha para editar.</p>
       </section>
-
     </div>
 
     <aside class="col-direita">
-
       <section class="painel">
         <h2>Horários previstos</h2>
         <div class="grid">
@@ -521,17 +459,13 @@
           <input type="file" id="arquivo" accept="application/json" class="oculto">
         </div>
         <p class="nota" style="margin-top:12px">
-          💾 Os lançamentos são salvos automaticamente. Faça backups periódicos usando <strong>Exportar</strong>.
+          💾 Os lançamentos são salvos automaticamente em 3 camadas (localStorage + sessionStorage + window.name).
         </p>
       </section>
-
     </aside>
-
   </div>
-
 </div>
 
-<!-- MODAIS -->
 <div id="alertaGif" class="modal oculto">
   <div class="modal-conteudo">
     <img src="https://media1.tenor.com/m/Nrkhk8qjNrgAAAAd/the-rock-swiftsgnf.gif" alt="Alerta">
@@ -581,10 +515,13 @@
   'use strict';
 
   const $ = id => document.getElementById(id);
-  const LS_REG = 'bancoHoras.registros.v1';
-  const LS_CFG = 'bancoHoras.config.v1';
-  const LS_TEMA = 'bancoHoras.tema.v1';
-  const LS_AVISO_FECH = 'bancoHoras.avisoFechamento.v1';
+
+  // Chaves de armazenamento
+  const LS_DADOS = 'bancoHoras.dados.v2';       // formato novo (com timestamp)
+  const LS_REG   = 'bancoHoras.registros.v1';   // legado (compat)
+  const LS_CFG   = 'bancoHoras.config.v1';      // legado (compat)
+  const LS_TEMA  = 'bancoHoras.tema.v1';
+  const LS_AVISO = 'bancoHoras.avisoFechamento.v1';
 
   const ORDEM = ['entrada','saidaAlmoco','voltaAlmoco','saida'];
   const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -593,6 +530,7 @@
   const DIA_ABERTURA   = 16;
   const ATRASO_ALERTA  = 2000;
 
+  // Estado
   let registros = [];
   let config = { jornada: 480, entradaPrev: '08:00', saidaPrev: '17:00' };
   let editandoId = null;
@@ -600,22 +538,29 @@
   let alertasMostrados = {};
   let estadoSucessoAnterior = false;
 
-  /* =========================================================
-     CAMADA DE ARMAZENAMENTO DUPLA (localStorage + sessionStorage)
-     Escreve nos dois; lê do localStorage e, se vazio, do sessionStorage.
-     Isso torna a persistência resiliente a bloqueios isolados de um dos dois.
-     ========================================================= */
+  /* ============================================================
+     CAMADA DE ARMAZENAMENTO — 3 NÍVEIS
+     - localStorage   (persiste entre sessões)
+     - sessionStorage (persiste entre reloads na mesma aba)
+     - window.name    (persiste entre reloads na mesma aba — reserva)
+     A gravação escreve nos TRÊS. A leitura pega o MAIS RECENTE
+     (pelo campo _savedAt) entre os que responderem.
+     ============================================================ */
   const Storage = {
     lsOK: false,
     ssOK: false,
+    wnOK: false,
+    WN_PREFIX: '__BHDATA__',
 
     init(){
-      this.lsOK = this._test('localStorage');
-      this.ssOK = this._test('sessionStorage');
-      return { ls: this.lsOK, ss: this.ssOK };
+      this.lsOK = this._testWebStorage('localStorage');
+      this.ssOK = this._testWebStorage('sessionStorage');
+      this.wnOK = this._testWindowName();
+      console.log('[BancoHoras] Armazenamento — localStorage:', this.lsOK, '| sessionStorage:', this.ssOK, '| window.name:', this.wnOK);
+      return { ls: this.lsOK, ss: this.ssOK, wn: this.wnOK };
     },
 
-    _test(nome){
+    _testWebStorage(nome){
       try{
         const s = window[nome];
         if(!s) return false;
@@ -628,39 +573,85 @@
       }catch(e){ return false; }
     },
 
-    set(chave, valor){
-      let gravou = false;
-      if(this.lsOK){
-        try{ localStorage.setItem(chave, valor); gravou = true; }catch(e){}
-      }
-      if(this.ssOK){
-        try{ sessionStorage.setItem(chave, valor); gravou = true; }catch(e){}
-      }
-      return gravou;
+    _testWindowName(){
+      try{
+        const original = window.name || '';
+        const test = this.WN_PREFIX + 'test-' + Date.now();
+        window.name = test;
+        const r = window.name;
+        window.name = original;
+        return r === test;
+      }catch(e){ return false; }
     },
 
-    get(chave){
-      if(this.lsOK){
-        try{
-          const v = localStorage.getItem(chave);
-          if(v !== null) return v;
-        }catch(e){}
-      }
-      if(this.ssOK){
-        try{
-          const v = sessionStorage.getItem(chave);
-          if(v !== null) return v;
-        }catch(e){}
-      }
+    _readWN(){
+      try{
+        const raw = window.name || '';
+        if(raw.indexOf(this.WN_PREFIX) !== 0) return {};
+        const json = raw.slice(this.WN_PREFIX.length);
+        return JSON.parse(json) || {};
+      }catch(e){ return {}; }
+    },
+
+    _writeWN(obj){
+      try{
+        window.name = this.WN_PREFIX + JSON.stringify(obj);
+      }catch(e){ /* ignora */ }
+    },
+
+    // Lê de UMA camada específica
+    getFromLayer(layer, chave){
+      try{
+        if(layer === 'ls' && this.lsOK) return localStorage.getItem(chave);
+        if(layer === 'ss' && this.ssOK) return sessionStorage.getItem(chave);
+        if(layer === 'wn' && this.wnOK){
+          const store = this._readWN();
+          return (chave in store) ? store[chave] : null;
+        }
+      }catch(e){}
       return null;
+    },
+
+    // Lê da camada de maior prioridade que tenha valor
+    get(chave){
+      const v1 = this.getFromLayer('ls', chave);
+      if(v1 !== null) return v1;
+      const v2 = this.getFromLayer('ss', chave);
+      if(v2 !== null) return v2;
+      const v3 = this.getFromLayer('wn', chave);
+      if(v3 !== null) return v3;
+      return null;
+    },
+
+    // Escreve em todas as camadas
+    set(chave, valor){
+      let ok = false;
+      if(this.lsOK){ try{ localStorage.setItem(chave, valor); ok = true; }catch(e){} }
+      if(this.ssOK){ try{ sessionStorage.setItem(chave, valor); ok = true; }catch(e){} }
+      if(this.wnOK){
+        try{
+          const store = this._readWN();
+          store[chave] = valor;
+          this._writeWN(store);
+          ok = true;
+        }catch(e){}
+      }
+      return ok;
     },
 
     remove(chave){
       if(this.lsOK){ try{ localStorage.removeItem(chave); }catch(e){} }
       if(this.ssOK){ try{ sessionStorage.removeItem(chave); }catch(e){} }
+      if(this.wnOK){
+        try{
+          const store = this._readWN();
+          delete store[chave];
+          this._writeWN(store);
+        }catch(e){}
+      }
     },
 
-    disponivel(){ return this.lsOK || this.ssOK; }
+    disponivel(){ return this.lsOK || this.ssOK || this.wnOK; }
   };
 
   /* ---------------- Utilidades ---------------- */
@@ -675,25 +666,24 @@
     return pad(Math.floor(a / 60)) + ':' + pad(a % 60);
   };
   const fmtSaldo = min => min === 0 ? '00:00' : (min > 0 ? '+' : '-') + minParaHhmm(min);
-  const fmtData = iso => {
-    const [a, m, d] = iso.split('-');
-    return `${d}/${m}/${a}`;
-  };
-  const fmtDataObj = d => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
-  const hojeISO = () => {
-    const d = new Date();
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  };
+  const fmtData = iso => { const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; };
+  const fmtDataObj = d => pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear();
+  const hojeISO = () => { const d = new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
   const uid = () => {
-    try{
-      if(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'){
-        return crypto.randomUUID();
-      }
-    }catch(e){}
+    try{ if(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID(); }catch(e){}
     return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
   };
 
-  /* ---------------- Status e avisos ---------------- */
+  // Chama função protegida e loga erros — não deixa uma falha derrubar o resto
+  function safeCall(rotulo, fn){
+    try{ return fn(); }
+    catch(err){
+      console.error('[BancoHoras] Erro em ' + rotulo + ':', err);
+      return undefined;
+    }
+  }
+
+  /* ---------------- Status / avisos ---------------- */
   function setStatusSalvo(texto, tipo){
     const el = $('statusSalvo');
     if(!el) return;
@@ -705,36 +695,30 @@
 
   function mostrarAvisoStorage(opcoes){
     const el = $('avisoStorage');
-    const icone = $('avisoIcone');
-    const titulo = $('avisoTitulo');
-    const texto = $('avisoTexto');
-    const btns = $('avisoBtns');
-
+    if(!el) return;
+    const icone = $('avisoIcone'), titulo = $('avisoTitulo'), texto = $('avisoTexto'), btns = $('avisoBtns');
     if(!opcoes || opcoes.nivel === 'ok'){
       el.classList.add('oculto');
       return;
     }
     el.classList.remove('oculto');
-    el.classList.toggle('alerta-medio', opcoes.nivel === 'aviso');
+    el.classList.remove('alerta-medio','ok');
+    if(opcoes.nivel === 'aviso') el.classList.add('alerta-medio');
+    if(opcoes.nivel === 'info')  el.classList.add('ok');
 
-    if(opcoes.nivel === 'aviso'){
-      icone.textContent = '⚠️';
-      titulo.textContent = 'Persistência limitada';
-    } else {
-      icone.textContent = '🚫';
-      titulo.textContent = 'Sem armazenamento persistente';
-    }
-    texto.innerHTML = opcoes.mensagem;
+    icone.textContent = opcoes.icone || (opcoes.nivel === 'aviso' ? '⚠️' : opcoes.nivel === 'info' ? '✅' : '🚫');
+    titulo.textContent = opcoes.titulo || 'Atenção';
+    texto.innerHTML = opcoes.mensagem || '';
     btns.innerHTML = '';
 
-    if(opcoes.mostrarRecuperar){
+    if(opcoes.botaoRecuperar){
       const b = document.createElement('button');
       b.className = 'btn';
-      b.textContent = '🔄 Tentar recuperar do sessionStorage';
-      b.addEventListener('click', tentarRecuperar);
+      b.textContent = '🔄 Tentar recuperar dados salvos';
+      b.addEventListener('click', recuperarDeStorage);
       btns.appendChild(b);
     }
-    if(opcoes.mostrarExportar){
+    if(opcoes.botaoExportar){
       const b = document.createElement('button');
       b.className = 'btn';
       b.textContent = '⬇ Exportar backup agora';
@@ -743,23 +727,30 @@
     }
   }
 
-  function tentarRecuperar(){
-    try{
-      let raw = null;
-      try{ raw = sessionStorage.getItem(LS_REG); }catch(e){}
-      if(!raw){ try{ raw = localStorage.getItem(LS_REG); }catch(e){} }
-      if(!raw){ alert('Nada encontrado nos storages do navegador.'); return; }
-      const arr = JSON.parse(raw);
-      if(!Array.isArray(arr) || !arr.length){ alert('Nenhum lançamento encontrado para recuperar.'); return; }
-      registros = arr.filter(x => x && typeof x.data === 'string')
-                     .map(normalizarRegistro);
-      try{ persistir(); }catch(e){}
-      carregarDiaNoForm();
-      render();
-      alert('Recuperados ' + registros.length + ' lançamento(s).');
-    }catch(e){
-      alert('Não foi possível recuperar: ' + (e.message || e));
+  function recuperarDeStorage(){
+    const achados = [];
+    ['ls','ss','wn'].forEach(layer => {
+      const raw = Storage.getFromLayer(layer, LS_DADOS);
+      if(raw){
+        try{
+          const p = JSON.parse(raw);
+          if(p && Array.isArray(p.registros)){
+            achados.push({ layer, dados: p });
+          }
+        }catch(e){}
+      }
+    });
+    if(!achados.length){
+      alert('Nenhum dado encontrado para recuperar.');
+      return;
     }
+    achados.sort((a,b) => (b.dados._savedAt||0) - (a.dados._savedAt||0));
+    const melhor = achados[0];
+    registros = melhor.dados.registros.map(normalizarRegistro);
+    if(melhor.dados.config) config = Object.assign(config, melhor.dados.config);
+    safeCall('persistir', persistir);
+    safeCall('render', render);
+    alert('Recuperados ' + registros.length + ' lançamento(s) da camada "' + melhor.layer + '".');
   }
 
   /* ---------------- Cálculos ---------------- */
@@ -780,16 +771,15 @@
   function diaCompleto(r){ return r.folga || ORDEM.every(c => r[c]); }
   function diaTemAlgo(r){ return ORDEM.some(c => r[c]); }
   function calcularSaldoTotal(){
-    let totalTrab = 0, totalEsp = 0;
+    let t = 0, e = 0;
     registros.forEach(r => {
       if(diaCompleto(r)){
-        totalTrab += trabalhadoMin(r);
-        totalEsp  += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+        t += trabalhadoMin(r);
+        e += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
       }
     });
-    return totalTrab - totalEsp;
+    return t - e;
   }
-
   function normalizarRegistro(x){
     return {
       id: x.id || uid(),
@@ -806,23 +796,30 @@
   /* ---------------- Persistência ---------------- */
   function persistir(){
     if(!Storage.disponivel()){
-      throw new Error('Nenhum armazenamento disponível (localStorage/sessionStorage)');
+      throw new Error('Nenhum armazenamento disponível');
     }
-    const payloadReg = JSON.stringify(registros);
-    const payloadCfg = JSON.stringify(config);
+    const payload = {
+      _savedAt: Date.now(),
+      registros: registros,
+      config: config
+    };
+    const json = JSON.stringify(payload);
 
-    const okReg = Storage.set(LS_REG, payloadReg);
-    const okCfg = Storage.set(LS_CFG, payloadCfg);
+    const ok = Storage.set(LS_DADOS, json);
+    // Grava também no formato legado (retrocompatibilidade)
+    Storage.set(LS_REG, JSON.stringify(registros));
+    Storage.set(LS_CFG, JSON.stringify(config));
 
-    if(!okReg || !okCfg){
-      throw new Error('Falha ao gravar no armazenamento');
+    if(!ok) throw new Error('Falha ao gravar em nenhuma das camadas');
+
+    // Verificação
+    const v = Storage.get(LS_DADOS);
+    if(!v) throw new Error('Verificação falhou: nada foi lido de volta');
+    const parsed = JSON.parse(v);
+    if(!parsed || parsed._savedAt !== payload._savedAt){
+      throw new Error('Verificação falhou: timestamp divergente');
     }
-
-    // Verificação: lê de volta e compara
-    const verif = Storage.get(LS_REG);
-    if(verif !== payloadReg){
-      throw new Error('Falha ao verificar gravação dos registros');
-    }
+    return true;
   }
 
   function persistirComStatus(){
@@ -833,82 +830,100 @@
       return true;
     }catch(err){
       setStatusSalvo('⚠ Falha ao salvar', 'erro');
-      console.error('Erro ao salvar:', err);
+      console.error('[BancoHoras] Erro ao salvar:', err);
       throw err;
     }
   }
 
   function carregar(){
-    // Testa ambas
     const st = Storage.init();
     const isFile = location.protocol === 'file:';
 
-    if(!st.ls && !st.ss){
-      // Nenhum armazenamento
+    if(!st.ls && !st.ss && !st.wn){
       mostrarAvisoStorage({
         nivel: 'grave',
-        mensagem:
-          'Seus lançamentos <strong>NÃO serão salvos</strong> entre recarregamentos. ' +
-          (isFile
-            ? 'Você está abrindo o arquivo diretamente (<code>file://</code>). ' +
-              'Isso bloqueia o armazenamento em alguns navegadores. ' +
-              'Solução: hospede o arquivo em um servidor local (ex.: <code>python -m http.server</code>) ' +
-              'ou use o botão <strong>Exportar</strong> para guardar seus dados manualmente.'
-            : 'Verifique se cookies/armazenamento estão permitidos para este site.'),
-        mostrarExportar: true
+        titulo: 'Sem armazenamento persistente',
+        mensagem: 'Seus lançamentos <b>NÃO serão salvos</b> entre recarregamentos. ' +
+          (isFile ? 'Você está abrindo via <code>file://</code>. Hospede em um servidor local (ex.: <code>python -m http.server</code>) ou use <b>Exportar</b>.' : 'Habilite cookies/armazenamento neste site.'),
+        botaoExportar: true
       });
       setStatusSalvo('⚠ Sem armazenamento', 'erro');
-    } else if(!st.ls && st.ss){
-      // Só sessionStorage (não persiste entre reinícios do navegador)
+    } else if(!st.ls && (st.ss || st.wn)){
       mostrarAvisoStorage({
         nivel: 'aviso',
-        mensagem:
-          'O <code>localStorage</code> está bloqueado, mas o <code>sessionStorage</code> está ativo. ' +
-          'Seus lançamentos sobrevivem a recarregamentos da página, <strong>mas não</strong> ' +
-          'a fechar e reabrir o navegador. Faça backups com <strong>Exportar</strong>.',
-        mostrarExportar: true
+        titulo: 'Persistência limitada à sessão',
+        mensagem: 'O <code>localStorage</code> está bloqueado, mas as camadas de sessão funcionam. ' +
+          'Seus dados sobrevivem a <b>recarregamentos</b>, mas não a fechar/reabrir o navegador.',
+        botaoExportar: true
       });
-      setStatusSalvo('✓ Salvando (sessão)', 'ok');
-    } else if(st.ls && !st.ss){
-      // Caso raro: localStorage funciona, sessionStorage não
-      // Não é problema — localStorage é o principal
+      setStatusSalvo('✓ Salvo (sessão)', 'ok');
+    } else if(st.ls && (!st.ss || !st.wn)){
+      // localStorage OK é o mais importante
       setStatusSalvo('✓ Salvo automaticamente', 'ok');
     } else {
       setStatusSalvo('✓ Salvo automaticamente', 'ok');
     }
 
-    // Registros
-    try{
-      const raw = Storage.get(LS_REG);
-      const r = raw ? JSON.parse(raw) : null;
-      if(Array.isArray(r)){
-        registros = r.filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
-                     .map(normalizarRegistro);
+    // === CARREGA REGISTROS ===
+    // 1) Tenta formato novo (com timestamp) em cada camada e pega o mais recente
+    const candidatos = [];
+    ['ls','ss','wn'].forEach(layer => {
+      const raw = Storage.getFromLayer(layer, LS_DADOS);
+      if(raw){
+        try{
+          const p = JSON.parse(raw);
+          if(p && Array.isArray(p.registros)){
+            candidatos.push({ layer, dados: p, ts: p._savedAt || 0 });
+          }
+        }catch(e){ console.warn('JSON inválido em', layer); }
       }
-    }catch(e){
-      console.warn('Falha ao ler registros:', e);
-      registros = [];
-    }
+    });
 
-    // Config
-    try{
-      const raw = Storage.get(LS_CFG);
-      const c = raw ? JSON.parse(raw) : null;
-      if(c && typeof c === 'object'){
-        config = {
-          jornada: typeof c.jornada === 'number' ? c.jornada : 480,
-          entradaPrev: c.entradaPrev || '08:00',
-          saidaPrev: c.saidaPrev || '17:00'
-        };
+    if(candidatos.length){
+      candidatos.sort((a,b) => b.ts - a.ts);
+      const melhor = candidatos[0];
+      registros = melhor.dados.registros
+        .filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
+        .map(normalizarRegistro);
+      if(melhor.dados.config){
+        config = Object.assign(config, melhor.dados.config);
       }
-    }catch(e){ console.warn('Falha ao ler config:', e); }
+      console.log('[BancoHoras] Carregados ' + registros.length + ' registros da camada "' + melhor.layer + '" (ts=' + melhor.ts + ')');
+    } else {
+      // 2) Fallback para formato legado
+      try{
+        const raw = Storage.get(LS_REG);
+        const r = raw ? JSON.parse(raw) : null;
+        if(Array.isArray(r)){
+          registros = r
+            .filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
+            .map(normalizarRegistro);
+        }
+      }catch(e){ console.warn('Falha ao ler formato legado:', e); registros = []; }
+
+      try{
+        const raw = Storage.get(LS_CFG);
+        const c = raw ? JSON.parse(raw) : null;
+        if(c && typeof c === 'object'){
+          config = {
+            jornada: typeof c.jornada === 'number' ? c.jornada : 480,
+            entradaPrev: c.entradaPrev || '08:00',
+            saidaPrev: c.saidaPrev || '17:00'
+          };
+        }
+      }catch(e){}
+
+      if(registros.length){
+        // Migra imediatamente para o formato novo
+        try{ persistir(); }catch(e){}
+      }
+    }
 
     // Tema
     let tema = null;
     try{ tema = Storage.get(LS_TEMA); }catch(e){}
     if(tema !== 'claro' && tema !== 'escuro'){
-      tema = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
-             ? 'claro' : 'escuro';
+      tema = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'claro' : 'escuro';
     }
     aplicarTema(tema);
   }
@@ -934,35 +949,45 @@
     const alvo = new Date(fim); alvo.setHours(0,0,0,0);
     return Math.round((alvo - hoje) / 86400000);
   }
+
   function atualizarFaixaPonto(){
+    const textoEl = $('textoPeriodo');
+    const diasEl = $('diasFechamento');
+    const faixaEl = $('faixaPonto');
+    if(!textoEl || !diasEl || !faixaEl){
+      console.warn('[BancoHoras] Elementos da faixa de fechamento não encontrados');
+      return;
+    }
+    faixaEl.classList.remove('oculto');
+
     const { inicio, fim } = calcularPeriodoPonto();
-    $('textoPeriodo').innerHTML =
+    textoEl.innerHTML =
       'Fechamento do ponto: <strong>' + fmtDataObj(inicio) + '</strong> a <strong>' + fmtDataObj(fim) + '</strong>';
+
     const dias = diasAteFechamento();
-    const el = $('diasFechamento');
-    el.classList.remove('alerta','urgente');
+    diasEl.classList.remove('alerta','urgente');
+
     let txt;
-    if(dias === 0){ txt = '⚠️ Fecha hoje!'; el.classList.add('urgente'); }
-    else if(dias === 1){ txt = '⚠️ Falta 1 dia para o fechamento'; el.classList.add('urgente'); }
-    else if(dias === 2){ txt = '⏳ Faltam 2 dias para o fechamento'; el.classList.add('alerta'); }
+    if(dias === 0){ txt = '⚠️ Fecha hoje!'; diasEl.classList.add('urgente'); }
+    else if(dias === 1){ txt = '⚠️ Falta 1 dia para o fechamento'; diasEl.classList.add('urgente'); }
+    else if(dias === 2){ txt = '⏳ Faltam 2 dias para o fechamento'; diasEl.classList.add('alerta'); }
+    else if(dias < 0){ txt = 'Período encerrado'; }
     else { txt = 'Faltam ' + dias + ' dias para o fechamento'; }
-    el.textContent = txt;
+    diasEl.textContent = txt;
   }
 
-  /* ---------------- Sistema de alertas ---------------- */
-  let timerAlerta = null;
-  let timerSaldo = null;
+  /* ---------------- Alertas com atraso ---------------- */
+  let timerAlerta = null, timerSaldo = null;
 
   function fecharTodosModais(){
-    $('alertaGif').classList.add('oculto');
-    $('alertaSaldo').classList.add('oculto');
-    $('alertaSucesso').classList.add('oculto');
-    $('alertaFechamento').classList.add('oculto');
+    ['alertaGif','alertaSaldo','alertaSucesso','alertaFechamento'].forEach(id => {
+      const el = $(id); if(el) el.classList.add('oculto');
+    });
   }
   function abrirModal(id, textoId, html){
     fecharTodosModais();
-    $(textoId).innerHTML = html;
-    $(id).classList.remove('oculto');
+    const t = $(textoId); if(t) t.innerHTML = html;
+    const m = $(id); if(m) m.classList.remove('oculto');
   }
   function agendarAlerta(fn){
     if(timerAlerta) clearTimeout(timerAlerta);
@@ -972,23 +997,21 @@
     if(timerSaldo) clearTimeout(timerSaldo);
     timerSaldo = setTimeout(() => { timerSaldo = null; fn(); }, ATRASO_ALERTA);
   }
-  function mostrarModal(id, textoId, html){
-    agendarAlerta(() => abrirModal(id, textoId, html));
-  }
+  function mostrarModal(id, textoId, html){ agendarAlerta(() => abrirModal(id, textoId, html)); }
 
   function verificarAvisoFechamento(){
     const dias = diasAteFechamento();
     if(dias !== 1 && dias !== 2) return;
     const hoje = hojeISO();
     let ultimo = null;
-    try{ ultimo = Storage.get(LS_AVISO_FECH); }catch(e){}
+    try{ ultimo = Storage.get(LS_AVISO); }catch(e){}
     if(ultimo === hoje) return;
-    try{ Storage.set(LS_AVISO_FECH, hoje); }catch(e){}
+    try{ Storage.set(LS_AVISO, hoje); }catch(e){}
     const { fim } = calcularPeriodoPonto();
     const quando = (dias === 1) ? 'Falta <strong>1 dia</strong>' : 'Faltam <strong>2 dias</strong>';
     mostrarModal('alertaFechamento', 'textoFechamento',
-      `${quando} para o fechamento do ponto (<strong>${fmtDataObj(fim)}</strong>).<br><br>` +
-      `Confira seus lançamentos e garanta que nenhum dia ficou pela metade. 😉`);
+      quando + ' para o fechamento do ponto (<strong>' + fmtDataObj(fim) + '</strong>).<br><br>' +
+      'Confira seus lançamentos e garanta que nenhum dia ficou pela metade. 😉');
   }
 
   /* ---------------- Tema ---------------- */
@@ -996,8 +1019,9 @@
     document.documentElement.setAttribute('data-tema', tema);
     try{ Storage.set(LS_TEMA, tema); }catch(e){}
     const claro = tema === 'claro';
-    $('iconeTema').textContent = claro ? '☀️' : '🌙';
-    $('txtTema').textContent   = claro ? 'Modo escuro' : 'Modo claro';
+    const i = $('iconeTema'), t = $('txtTema');
+    if(i) i.textContent = claro ? '☀️' : '🌙';
+    if(t) t.textContent = claro ? 'Modo escuro' : 'Modo claro';
   }
   $('btnTema').addEventListener('click', () => {
     const atual = document.documentElement.getAttribute('data-tema');
@@ -1007,7 +1031,8 @@
   /* ---------------- Relógio ---------------- */
   function atualizarRelogio(){
     const d = new Date();
-    $('agoraRef').textContent = 'Agora: ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    const el = $('agoraRef');
+    if(el) el.textContent = 'Agora: ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
   }
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
@@ -1018,20 +1043,21 @@
     if(!entrada) return null;
     const saidaAlmoco = $('saidaAlmoco').value;
     const voltaAlmoco = $('voltaAlmoco').value;
-    let duracaoAlmoco = 60;
+    let durAlmoco = 60;
     if(saidaAlmoco && voltaAlmoco){
       let d = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
       if(d < 0) d += 1440;
-      if(d > 0) duracaoAlmoco = d;
+      if(d > 0) durAlmoco = d;
     }
-    const totalMin = hhmmParaMin(entrada) + config.jornada + duracaoAlmoco;
+    const totalMin = hhmmParaMin(entrada) + config.jornada + durAlmoco;
     return {
       hhmm: minParaHhmm(((totalMin % 1440) + 1440) % 1440),
-      duracaoAlmoco, jornada: config.jornada
+      duracaoAlmoco: durAlmoco, jornada: config.jornada
     };
   }
   function atualizarPrevisao(){
     const box = $('previsaoBox'), valEl = $('previsaoValor'), detEl = $('previsaoDet');
+    if(!box || !valEl || !detEl) return;
     if($('folga').checked){
       box.classList.add('inativo'); valEl.textContent = '—:—';
       detEl.textContent = 'Dia marcado como folga'; return;
@@ -1043,10 +1069,9 @@
     }
     box.classList.remove('inativo');
     valEl.textContent = p.hhmm;
-    detEl.innerHTML =
-      `Entrada <strong>${$('entrada').value}</strong>` +
-      ` + Jornada <strong>${minParaHhmm(p.jornada)}</strong>` +
-      ` + Almoço <strong>${minParaHhmm(p.duracaoAlmoco)}</strong>`;
+    detEl.innerHTML = 'Entrada <strong>' + $('entrada').value + '</strong>' +
+      ' + Jornada <strong>' + minParaHhmm(p.jornada) + '</strong>' +
+      ' + Almoço <strong>' + minParaHhmm(p.duracaoAlmoco) + '</strong>';
   }
 
   /* ---------------- Calendário ---------------- */
@@ -1060,7 +1085,7 @@
     let html = '';
     for(let i = 0; i < diaSemanaInicio; i++) html += '<div class="cal-dia vazio"></div>';
     for(let d = 1; d <= diasNoMes; d++){
-      const iso = `${calAno}-${pad(calMes + 1)}-${pad(d)}`;
+      const iso = calAno + '-' + pad(calMes + 1) + '-' + pad(d);
       const reg = registros.find(r => r.data === iso);
       let cls = 'cal-dia';
       if(reg){
@@ -1070,7 +1095,7 @@
       }
       if(iso === hoje) cls += ' hoje';
       if(iso === dataForm) cls += ' selecionado';
-      html += `<button type="button" class="${cls}" data-data="${iso}">${d}</button>`;
+      html += '<button type="button" class="' + cls + '" data-data="' + iso + '">' + d + '</button>';
     }
     $('calGrid').innerHTML = html;
   }
@@ -1093,17 +1118,13 @@
     $('data').value = btn.dataset.data;
     carregarDiaNoForm(); renderCalendario();
     const rect = $('form').getBoundingClientRect();
-    if(rect.top < 0 || rect.top > window.innerHeight){
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if(rect.top < 0 || rect.top > window.innerHeight) window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
   /* ---------------- Formulário ---------------- */
   function limparAlertas(){
     alertasMostrados = {};
-    document.querySelectorAll('#form input[type=time]').forEach(i => {
-      i.classList.remove('divergente','correto');
-    });
+    document.querySelectorAll('#form input[type=time]').forEach(i => i.classList.remove('divergente','correto'));
   }
   function carregarDiaNoForm(){
     const iso = $('data').value;
@@ -1170,9 +1191,9 @@
     if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){ estadoSucessoAnterior = false; return; }
     if(!estadoSucessoAnterior){
       mostrarModal('alertaSucesso', 'textoSucesso',
-        `Entrada <strong>${entrada}</strong> · Saída almoço <strong>${saidaAlmoco}</strong> · ` +
-        `Volta <strong>${voltaAlmoco}</strong> · Saída <strong>${saida}</strong><br><br>` +
-        `Todos os horários conferem com o previsto e o almoço tem exatamente 1 hora. 🎉`);
+        'Entrada <strong>' + entrada + '</strong> · Saída almoço <strong>' + saidaAlmoco + '</strong> · ' +
+        'Volta <strong>' + voltaAlmoco + '</strong> · Saída <strong>' + saida + '</strong><br><br>' +
+        'Todos os horários conferem com o previsto e o almoço tem exatamente 1 hora. 🎉');
     }
     estadoSucessoAnterior = true;
   }
@@ -1187,10 +1208,10 @@
       const chave = campo + ':' + valor;
       const detalhes = [];
       if(campo === 'entrada' && config.entradaPrev && valor !== config.entradaPrev){
-        detalhes.push(`Entrada: <strong>${valor}</strong> (previsto ${config.entradaPrev})`);
+        detalhes.push('Entrada: <strong>' + valor + '</strong> (previsto ' + config.entradaPrev + ')');
         this.classList.add('divergente'); this.classList.remove('correto');
       } else if(campo === 'saida' && config.saidaPrev && valor !== config.saidaPrev){
-        detalhes.push(`Saída: <strong>${valor}</strong> (previsto ${config.saidaPrev})`);
+        detalhes.push('Saída: <strong>' + valor + '</strong> (previsto ' + config.saidaPrev + ')');
         this.classList.add('divergente'); this.classList.remove('correto');
       } else if(campo === 'entrada' || campo === 'saida'){
         this.classList.remove('divergente'); this.classList.add('correto');
@@ -1198,7 +1219,7 @@
       if(campo === 'voltaAlmoco' && $('saidaAlmoco').value){
         const dur = hhmmParaMin(valor) - hhmmParaMin($('saidaAlmoco').value);
         if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
-          detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
+          detalhes.push('Almoço: <strong>' + minParaHhmm(Math.abs(dur)) + '</strong> (esperado 01:00)');
           this.classList.add('divergente'); this.classList.remove('correto');
           $('saidaAlmoco').classList.add('divergente'); $('saidaAlmoco').classList.remove('correto');
         } else {
@@ -1209,7 +1230,7 @@
       if(campo === 'saidaAlmoco' && $('voltaAlmoco').value){
         const dur = hhmmParaMin($('voltaAlmoco').value) - hhmmParaMin(valor);
         if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
-          detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
+          detalhes.push('Almoço: <strong>' + minParaHhmm(Math.abs(dur)) + '</strong> (esperado 01:00)');
           this.classList.add('divergente'); this.classList.remove('correto');
           $('voltaAlmoco').classList.add('divergente'); $('voltaAlmoco').classList.remove('correto');
         } else {
@@ -1246,10 +1267,8 @@
     if(!r) return;
     if(confirm('Excluir o lançamento de ' + fmtData(r.data) + '?')){
       registros = registros.filter(x => x.id !== editandoId);
-      try{ persistirComStatus(); }
-      catch(err){ alert('Exclusão NÃO foi salva: ' + err.message); }
-      carregarDiaNoForm();
-      render();
+      try{ persistirComStatus(); }catch(err){ alert('Exclusão NÃO foi salva: ' + err.message); }
+      carregarDiaNoForm(); render();
     }
   });
 
@@ -1295,7 +1314,6 @@
       }
 
       salvarRegistro(novoReg);
-
       editandoId = (registros.find(r => r.data === iso) || {}).id || null;
       render();
 
@@ -1309,15 +1327,15 @@
       if(saldoTotal !== 0){
         let html = '';
         if(extraNoDia){
-          html += `Neste lançamento você trabalhou <strong>${minParaHhmm(trab)}</strong>, ` +
-                  `ou seja <strong class="pos">+${minParaHhmm(extra)}</strong> de horas extras.<br><br>`;
+          html += 'Neste lançamento você trabalhou <strong>' + minParaHhmm(trab) + '</strong>, ' +
+                  'ou seja <strong class="pos">+' + minParaHhmm(extra) + '</strong> de horas extras.<br><br>';
         }
         if(saldoTotal > 0){
-          html += `Seu banco de horas está <strong class="pos">POSITIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
-                  `Você tem horas a mais acumuladas — continue assim! 🚀`;
+          html += 'Seu banco de horas está <strong class="pos">POSITIVO: ' + fmtSaldo(saldoTotal) + '</strong>.<br>' +
+                  'Você tem horas a mais acumuladas — continue assim! 🚀';
         } else {
-          html += `Seu banco de horas está <strong class="neg">NEGATIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
-                  `Fique atento para compensar essas horas. ⚠️`;
+          html += 'Seu banco de horas está <strong class="neg">NEGATIVO: ' + fmtSaldo(saldoTotal) + '</strong>.<br>' +
+                  'Fique atento para compensar essas horas. ⚠️';
         }
         agendarAlertaSaldo(() => abrirModal('alertaSaldo', 'textoSaldo', html));
       }
@@ -1364,7 +1382,7 @@
     $('statDias').textContent   = completos;
     $('statAndamento').textContent = andamento;
 
-    const ordenados = [...registros].sort((a, b) => b.data.localeCompare(a.data));
+    const ordenados = [...registros].sort((a,b) => b.data.localeCompare(a.data));
     const corpo = $('corpo');
     if(!ordenados.length){
       corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum lançamento ainda. Adicione um dia no formulário acima ou clique no calendário. 👆</td></tr>';
@@ -1376,16 +1394,18 @@
         const s    = trab - esp;
         const cls  = !completo ? 'mut' : (s > 0 ? 'pos' : s < 0 ? 'neg' : '');
         const valOuTraco = v => v || '<span class="mut">—</span>';
-        return `<tr class="clickable" data-editar="${r.id}">
-          <td>${fmtData(r.data)}${r.folga ? '<span class="tag">folga</span>' : ''}${!completo && diaTemAlgo(r) ? '<span class="tag andamento">parcial</span>' : ''}</td>
-          <td>${valOuTraco(r.entrada)}</td>
-          <td>${valOuTraco(r.saidaAlmoco)}</td>
-          <td>${valOuTraco(r.voltaAlmoco)}</td>
-          <td>${valOuTraco(r.saida)}</td>
-          <td>${trab > 0 ? minParaHhmm(trab) : '<span class="mut">—</span>'}</td>
-          <td class="forte ${cls}">${completo ? fmtSaldo(s) : '<span class="mut">—</span>'}</td>
-          <td><button class="icone" data-excluir="${r.id}" title="Excluir">🗑️</button></td>
-        </tr>`;
+        return '<tr class="clickable" data-editar="' + r.id + '">' +
+          '<td>' + fmtData(r.data) +
+            (r.folga ? '<span class="tag">folga</span>' : '') +
+            (!completo && diaTemAlgo(r) ? '<span class="tag andamento">parcial</span>' : '') + '</td>' +
+          '<td>' + valOuTraco(r.entrada) + '</td>' +
+          '<td>' + valOuTraco(r.saidaAlmoco) + '</td>' +
+          '<td>' + valOuTraco(r.voltaAlmoco) + '</td>' +
+          '<td>' + valOuTraco(r.saida) + '</td>' +
+          '<td>' + (trab > 0 ? minParaHhmm(trab) : '<span class="mut">—</span>') + '</td>' +
+          '<td class="forte ' + cls + '">' + (completo ? fmtSaldo(s) : '<span class="mut">—</span>') + '</td>' +
+          '<td><button class="icone" data-excluir="' + r.id + '" title="Excluir">🗑️</button></td>' +
+        '</tr>';
       }).join('');
     }
     renderCalendario();
@@ -1419,9 +1439,9 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 10,
+      app: 'banco-de-horas', versao: 11,
       exportadoEm: new Date().toISOString(),
-      config, registros
+      config: config, registros: registros
     };
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -1446,7 +1466,6 @@
         if(!confirm('Isso substituirá os registros atuais pelos do arquivo. Continuar?')) return;
 
         registros = regs.filter(r => r && r.data).map(normalizarRegistro);
-
         if(dados.config){
           config = {
             jornada: typeof dados.config.jornada === 'number' ? dados.config.jornada : config.jornada,
@@ -1457,7 +1476,6 @@
           $('entradaPrev').value = config.entradaPrev;
           $('saidaPrev').value = config.saidaPrev;
         }
-
         persistirComStatus();
         carregarDiaNoForm(); render();
         alert('Dados importados com sucesso!');
@@ -1478,15 +1496,21 @@
     }
   });
 
-  /* ---------------- Redes de segurança ----------------
-     1) beforeunload: salva ao sair/fechar
-     2) autosave a cada 15s: protege contra perda por travamento
-  */
+  /* ---------------- Redes de segurança ---------------- */
   window.addEventListener('beforeunload', () => {
     try{
       if(Storage.disponivel()){
-        Storage.set(LS_REG, JSON.stringify(registros));
-        Storage.set(LS_CFG, JSON.stringify(config));
+        const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
+        Storage.set(LS_DADOS, payload);
+      }
+    }catch(e){}
+  });
+
+  window.addEventListener('pagehide', () => {
+    try{
+      if(Storage.disponivel()){
+        const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
+        Storage.set(LS_DADOS, payload);
       }
     }catch(e){}
   });
@@ -1494,30 +1518,43 @@
   setInterval(() => {
     try{
       if(Storage.disponivel()){
-        Storage.set(LS_REG, JSON.stringify(registros));
-        Storage.set(LS_CFG, JSON.stringify(config));
+        const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
+        Storage.set(LS_DADOS, payload);
       }
     }catch(e){}
-  }, 15000);
+  }, 10000);
 
   /* ---------------- Inicialização ---------------- */
-  carregar();
+  // Cada passo é protegido individualmente para que uma falha não impeça os outros
+  safeCall('carregar', carregar);
 
-  $('jornada').value     = minParaHhmm(config.jornada);
-  $('entradaPrev').value = config.entradaPrev || '08:00';
-  $('saidaPrev').value   = config.saidaPrev || '17:00';
+  safeCall('preencher form', () => {
+    $('jornada').value     = minParaHhmm(config.jornada);
+    $('entradaPrev').value = config.entradaPrev || '08:00';
+    $('saidaPrev').value   = config.saidaPrev || '17:00';
+  });
 
-  const hj = new Date();
-  calAno = hj.getFullYear();
-  calMes = hj.getMonth();
+  safeCall('inicializar calendário', () => {
+    const hj = new Date();
+    calAno = hj.getFullYear();
+    calMes = hj.getMonth();
+  });
 
-  $('data').value = hojeISO();
-  carregarDiaNoForm();
-  render();
+  safeCall('carregar dia no form', () => {
+    $('data').value = hojeISO();
+    carregarDiaNoForm();
+  });
 
-  atualizarFaixaPonto();
-  setInterval(atualizarFaixaPonto, 60000);
-  verificarAvisoFechamento();
+  safeCall('render inicial', render);
+  safeCall('atualizar faixa de ponto', atualizarFaixaPonto);
+
+  // Atualiza a faixa a cada 60s (recalcula virada de dia)
+  setInterval(() => safeCall('atualizar faixa (tick)', atualizarFaixaPonto), 60000);
+
+  safeCall('verificar aviso de fechamento', verificarAvisoFechamento);
+
+  // Log final para diagnóstico
+  console.log('[BancoHoras] Inicialização concluída. Registros em memória:', registros.length);
 })();
 </script>
 </body>
