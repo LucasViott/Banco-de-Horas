@@ -544,19 +544,11 @@
   const LS_AVISO_FECH = 'bancoHoras.avisoFechamento.v1';
 
   const ORDEM = ['entrada','saidaAlmoco','voltaAlmoco','saida'];
-  const LABELS = {
-    entrada: 'Entrada',
-    saidaAlmoco: 'Saída almoço',
-    voltaAlmoco: 'Volta almoço',
-    saida: 'Saída'
-  };
 
   const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  // Dia do mês em que o ponto fecha (15) e em que o novo período abre (16)
   const DIA_FECHAMENTO = 15;
   const DIA_ABERTURA   = 16;
-  // Tempo (ms) de espera antes de exibir qualquer notificação com GIF
   const ATRASO_ALERTA  = 2000;
 
   let registros = [];
@@ -592,14 +584,16 @@
     const d = new Date();
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   };
-  const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : String(Date.now()) + Math.random().toString(16).slice(2);
+  const uid = () => {
+    try{
+      if(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'){
+        return crypto.randomUUID();
+      }
+    }catch(e){}
+    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+  };
 
-  /* ---------------- Período de fechamento do ponto ----------------
-     Regra: período vai do dia 16 de um mês até o dia 15 do mês seguinte.
-     - Se hoje é dia >= 16 → período = 16 deste mês até 15 do próximo mês.
-     - Se hoje é dia <= 15 → período = 16 do mês anterior até 15 deste mês. */
+  /* ---------------- Período de fechamento do ponto ---------------- */
   function calcularPeriodoPonto(ref){
     const d = ref ? new Date(ref) : new Date();
     const dia = d.getDate();
@@ -647,16 +641,12 @@
     el.textContent = txt;
   }
 
-  /* ---------------- Fila de alertas (com atraso de 2s) ---------------- */
-  let timerAlerta = null;
-
-  function agendarAlerta(fn){
-    if(timerAlerta) clearTimeout(timerAlerta);
-    timerAlerta = setTimeout(() => {
-      timerAlerta = null;
-      fn();
-    }, ATRASO_ALERTA);
-  }
+  /* ---------------- Sistema de alertas com atraso ----------------
+     - Um timer único para alertas de interação nos campos (mudam a cada edição).
+     - Um timer separado para o alerta de saldo, disparado no "Salvar".
+     Isso evita que a notificação de saldo seja cancelada por outras interações. */
+  let timerAlerta = null;    // alertas em tempo real dos campos
+  let timerSaldo  = null;    // alerta disparado pelo botão salvar
 
   function fecharTodosModais(){
     $('alertaGif').classList.add('oculto');
@@ -665,12 +655,32 @@
     $('alertaFechamento').classList.add('oculto');
   }
 
+  function abrirModal(id, textoId, html){
+    fecharTodosModais();
+    $(textoId).innerHTML = html;
+    $(id).classList.remove('oculto');
+  }
+
+  // Alerta em tempo real (campos de horário, sucesso, fechamento)
+  function agendarAlerta(fn){
+    if(timerAlerta) clearTimeout(timerAlerta);
+    timerAlerta = setTimeout(() => {
+      timerAlerta = null;
+      fn();
+    }, ATRASO_ALERTA);
+  }
+
+  // Alerta de saldo (disparado pelo botão Salvar) — timer independente
+  function agendarAlertaSaldo(fn){
+    if(timerSaldo) clearTimeout(timerSaldo);
+    timerSaldo = setTimeout(() => {
+      timerSaldo = null;
+      fn();
+    }, ATRASO_ALERTA);
+  }
+
   function mostrarModal(id, textoId, html){
-    agendarAlerta(() => {
-      fecharTodosModais();
-      $(textoId).innerHTML = html;
-      $(id).classList.remove('oculto');
-    });
+    agendarAlerta(() => abrirModal(id, textoId, html));
   }
 
   /* ---------------- Notificação de fechamento (2 dias / 1 dia) ---------------- */
@@ -695,6 +705,7 @@
     );
   }
 
+  /* ---------------- Cálculos ---------------- */
   function trabalhadoMin(r){
     let total = 0;
     if(r.entrada && r.saidaAlmoco){
@@ -715,7 +726,6 @@
   function diaTemAlgo(r){
     return ORDEM.some(c => r[c]);
   }
-
   function calcularSaldoTotal(){
     let totalTrab = 0, totalEsp = 0;
     registros.forEach(r => {
@@ -765,8 +775,12 @@
     aplicarTema(tema);
   }
   function persistir(){
-    localStorage.setItem(LS_REG, JSON.stringify(registros));
-    localStorage.setItem(LS_CFG, JSON.stringify(config));
+    try{
+      localStorage.setItem(LS_REG, JSON.stringify(registros));
+      localStorage.setItem(LS_CFG, JSON.stringify(config));
+    }catch(e){
+      console.warn('Não foi possível salvar no localStorage:', e);
+    }
   }
 
   /* ---------------- Tema ---------------- */
@@ -976,7 +990,6 @@
     renderCalendario();
   });
 
-  // Auto-preenche a volta do almoço (+1h) apenas se estiver vazio
   $('saidaAlmoco').addEventListener('change', function(){
     if(this.value && !$('voltaAlmoco').value){
       const [h, m] = this.value.split(':').map(Number);
@@ -996,18 +1009,15 @@
       estadoSucessoAnterior = false;
       return;
     }
-
     if(entrada !== config.entradaPrev || saida !== config.saidaPrev){
       estadoSucessoAnterior = false;
       return;
     }
-
     const dur = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
     if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
       estadoSucessoAnterior = false;
       return;
     }
-
     if(!estadoSucessoAnterior){
       const html =
         `Entrada <strong>${entrada}</strong> · Saída almoço <strong>${saidaAlmoco}</strong> · ` +
@@ -1034,7 +1044,6 @@
       const chave = campo + ':' + valor;
       const detalhes = [];
 
-      // 1) Divergência em relação ao previsto (apenas entrada e saída têm previsto)
       if(campo === 'entrada' && config.entradaPrev && valor !== config.entradaPrev){
         detalhes.push(`Entrada: <strong>${valor}</strong> (previsto ${config.entradaPrev})`);
         this.classList.add('divergente');
@@ -1048,7 +1057,6 @@
         this.classList.add('correto');
       }
 
-      // 2) Almoço com duração diferente de 1h
       if(campo === 'voltaAlmoco' && $('saidaAlmoco').value){
         const dur = hhmmParaMin(valor) - hhmmParaMin($('saidaAlmoco').value);
         if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
@@ -1080,7 +1088,6 @@
         }
       }
 
-      // Mostra o alerta se houver divergência
       if(detalhes.length){
         if(!alertasMostrados[chave]){
           alertasMostrados[chave] = true;
@@ -1098,27 +1105,22 @@
   $('btnFecharAlerta').addEventListener('click', () => {
     $('alertaGif').classList.add('oculto');
   });
-
   $('btnSaldoOk').addEventListener('click', () => {
     $('alertaSaldo').classList.add('oculto');
   });
-
   $('btnSucessoOk').addEventListener('click', () => {
     $('alertaSucesso').classList.add('oculto');
   });
-
   $('btnFechamentoOk').addEventListener('click', () => {
     $('alertaFechamento').classList.add('oculto');
   });
 
-  // Botão Novo (limpar)
   $('btnNovo').addEventListener('click', () => {
     $('data').value = hojeISO();
     carregarDiaNoForm();
     renderCalendario();
   });
 
-  // Botão Excluir
   $('btnExcluir').addEventListener('click', () => {
     if(!editandoId) return;
     const r = registros.find(x => x.id === editandoId);
@@ -1131,7 +1133,6 @@
     }
   });
 
-  // Checkbox folga
   $('folga').addEventListener('change', () => {
     atualizarPrevisao();
     if($('folga').checked){
@@ -1141,79 +1142,86 @@
     }
   });
 
-  /* ---------------- Submit ---------------- */
-  $('form').addEventListener('submit', e => {
-    e.preventDefault();
-
-    const iso = $('data').value;
-    if(!iso){ alert('Informe uma data.'); return; }
-
-    const novoReg = {
-      data: iso,
-      entrada:     $('entrada').value     || null,
-      saidaAlmoco: $('saidaAlmoco').value || null,
-      voltaAlmoco: $('voltaAlmoco').value || null,
-      saida:       $('saida').value       || null,
-      folga:       $('folga').checked,
-      esperado:    0
-    };
-    novoReg.esperado = novoReg.folga ? 0 : config.jornada;
-
-    const algumTempo = ORDEM.some(c => novoReg[c]);
-    if(!novoReg.folga && !algumTempo){
-      alert('Informe pelo menos um horário ou marque Folga.');
-      return;
-    }
-
-    // Detecta se houve hora extra neste lançamento
-    let extraNoDia = false;
-    let trab = 0, extra = 0;
-    if(diaCompleto(novoReg) && !novoReg.folga){
-      trab = trabalhadoMin(novoReg);
-      if(trab > config.jornada){
-        extra = trab - config.jornada;
-        extraNoDia = true;
-      }
-    }
-
-    salvarRegistro(novoReg);
-
-    // Após salvar, recalcula o saldo total do banco de horas
-    const saldoTotal = calcularSaldoTotal();
-
-    // Sinaliza com GIF sempre que o banco estiver positivo ou negativo
-    if(saldoTotal !== 0){
-      let html = '';
-      if(extraNoDia){
-        html += `Neste lançamento você trabalhou <strong>${minParaHhmm(trab)}</strong>, ` +
-                `ou seja <strong class="pos">+${minParaHhmm(extra)}</strong> de horas extras.<br><br>`;
-      }
-      if(saldoTotal > 0){
-        html += `Seu banco de horas está <strong class="pos">POSITIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
-                `Você tem horas a mais acumuladas — continue assim! 🚀`;
-      } else {
-        html += `Seu banco de horas está <strong class="neg">NEGATIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
-                `Fique atento para compensar essas horas. ⚠️`;
-      }
-      mostrarModal('alertaSaldo', 'textoSaldo', html);
-    }
-  });
-
+  /* ---------------- Salvar registro (síncrono) ---------------- */
   function salvarRegistro(novoReg){
-    if(editandoId){
+    if(editandoId && registros.some(r => r.id === editandoId)){
       const i = registros.findIndex(r => r.id === editandoId);
-      if(i > -1) registros[i] = Object.assign({ id: editandoId }, novoReg);
+      registros[i] = Object.assign({}, novoReg, { id: editandoId });
     } else {
       novoReg.id = uid();
       registros.push(novoReg);
     }
     persistir();
-
-    const dataAtual = $('data').value;
-    editandoId = (registros.find(r => r.data === dataAtual) || {}).id || null;
-    carregarDiaNoForm();
-    render();
   }
+
+  /* ---------------- Submit ---------------- */
+  $('form').addEventListener('submit', e => {
+    e.preventDefault();
+    try{
+      const iso = $('data').value;
+      if(!iso){ alert('Informe uma data.'); return; }
+
+      const novoReg = {
+        data: iso,
+        entrada:     $('entrada').value     || null,
+        saidaAlmoco: $('saidaAlmoco').value || null,
+        voltaAlmoco: $('voltaAlmoco').value || null,
+        saida:       $('saida').value       || null,
+        folga:       $('folga').checked,
+        esperado:    0
+      };
+      novoReg.esperado = novoReg.folga ? 0 : config.jornada;
+
+      const algumTempo = ORDEM.some(c => novoReg[c]);
+      if(!novoReg.folga && !algumTempo){
+        alert('Informe pelo menos um horário ou marque Folga.');
+        return;
+      }
+
+      // 1) Salva de forma síncrona
+      salvarRegistro(novoReg);
+
+      // 2) Recalcula o editandoId com base no que foi salvo
+      editandoId = (registros.find(r => r.data === iso) || {}).id || null;
+
+      // 3) Renderiza IMEDIATAMENTE — sem depender de reload
+      render();
+
+      // 4) Verifica hora extra apenas do dia salvo (para enriquecer a notificação)
+      let extraNoDia = false, trab = 0, extra = 0;
+      if(diaCompleto(novoReg) && !novoReg.folga){
+        trab = trabalhadoMin(novoReg);
+        if(trab > config.jornada){
+          extra = trab - config.jornada;
+          extraNoDia = true;
+        }
+      }
+
+      // 5) Calcula o saldo total do banco
+      const saldoTotal = calcularSaldoTotal();
+
+      // 6) Agenda a notificação do saldo (timer independente — não é
+      //    cancelado pelos alertas em tempo real dos campos)
+      if(saldoTotal !== 0){
+        let html = '';
+        if(extraNoDia){
+          html += `Neste lançamento você trabalhou <strong>${minParaHhmm(trab)}</strong>, ` +
+                  `ou seja <strong class="pos">+${minParaHhmm(extra)}</strong> de horas extras.<br><br>`;
+        }
+        if(saldoTotal > 0){
+          html += `Seu banco de horas está <strong class="pos">POSITIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
+                  `Você tem horas a mais acumuladas — continue assim! 🚀`;
+        } else {
+          html += `Seu banco de horas está <strong class="neg">NEGATIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
+                  `Fique atento para compensar essas horas. ⚠️`;
+        }
+        agendarAlertaSaldo(() => abrirModal('alertaSaldo', 'textoSaldo', html));
+      }
+    }catch(err){
+      console.error('Erro ao salvar lançamento:', err);
+      alert('Não foi possível salvar o lançamento.\n\nDetalhe: ' + (err && err.message ? err.message : err));
+    }
+  });
 
   /* ---------------- Configurações ---------------- */
   ['entradaPrev','saidaPrev'].forEach(id => {
