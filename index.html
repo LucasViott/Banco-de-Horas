@@ -47,6 +47,37 @@
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
 
+  /* ---------- Faixa do período de fechamento ---------- */
+  .faixa-ponto{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--borda);
+    border-left:4px solid var(--azul);
+    border-radius:12px;padding:13px 18px;margin:0 0 22px;
+    font-size:.88rem;color:var(--txt);line-height:1.4;
+    transition:background .3s,border-color .3s;
+  }
+  .faixa-ponto .faixa-icone{font-size:1.05rem;line-height:1}
+  .faixa-ponto strong{color:var(--azul);font-variant-numeric:tabular-nums}
+  .faixa-dias{
+    margin-left:auto;font-size:.75rem;color:var(--mut);font-weight:600;
+    background:var(--card2);border:1px solid var(--borda);
+    padding:5px 12px;border-radius:999px;white-space:nowrap;
+    font-variant-numeric:tabular-nums;transition:.25s;
+  }
+  .faixa-dias.alerta{
+    color:var(--laranja);border-color:rgba(245,158,11,.5);
+    background:rgba(245,158,11,.12);
+  }
+  .faixa-dias.urgente{
+    color:var(--neg);border-color:rgba(239,68,68,.5);
+    background:rgba(239,68,68,.12);
+    animation:pulsar 1.6s ease-in-out infinite;
+  }
+  @keyframes pulsar{
+    0%,100%{transform:scale(1)}
+    50%{transform:scale(1.05)}
+  }
+
   .layout-2col{
     display:grid;
     grid-template-columns: minmax(0, 1fr) 340px;
@@ -278,6 +309,20 @@
     box-shadow:0 0 0 1px rgba(34,197,94,.15),0 20px 50px -12px rgba(34,197,94,.35);
   }
   .modal-sucesso h3{color:var(--pos)}
+
+  /* Modal de fechamento do ponto */
+  .modal-fechamento .modal-conteudo{
+    border:1px solid rgba(245,158,11,.45);
+    box-shadow:0 0 0 1px rgba(245,158,11,.15),0 20px 50px -12px rgba(245,158,11,.4);
+  }
+  .modal-fechamento h3{color:var(--laranja)}
+
+  /* Modal de saldo (positivo / negativo) */
+  .modal-saldo .modal-conteudo{
+    border:1px solid rgba(59,130,246,.45);
+    box-shadow:0 0 0 1px rgba(59,130,246,.15),0 20px 50px -12px rgba(59,130,246,.4);
+  }
+  .modal-saldo h3{color:var(--azul)}
 </style>
 </head>
 <body>
@@ -292,6 +337,13 @@
       <span id="iconeTema">🌙</span><span id="txtTema">Modo claro</span>
     </button>
   </header>
+
+  <!-- FAIXA: PERÍODO DE FECHAMENTO DO PONTO -->
+  <div class="faixa-ponto" id="faixaPonto">
+    <span class="faixa-icone">📅</span>
+    <span id="textoPeriodo">Fechamento do ponto: —</span>
+    <span class="faixa-dias" id="diasFechamento">—</span>
+  </div>
 
   <!-- SALDO EM DESTAQUE -->
   <div class="saldo-card" id="saldoCard">
@@ -445,14 +497,14 @@
   </div>
 </div>
 
-<!-- MODAL 2: JORNADA EXCEDIDA -->
-<div id="alertaExtra" class="modal oculto">
+<!-- MODAL 2: SALDO POSITIVO / NEGATIVO (treadmill) -->
+<div id="alertaSaldo" class="modal modal-saldo oculto">
   <div class="modal-conteudo">
-    <img src="https://media1.tenor.com/m/vK60kNp1grIAAAAC/treadmill-treat.gif" alt="Alerta de jornada excedida">
-    <h3>🏃 Você trabalhou mais que o previsto!</h3>
-    <p id="textoExtra"></p>
+    <img src="https://media1.tenor.com/m/vK60kNp1grIAAAAd/treadmill-treat.gif" alt="Alerta de saldo do banco de horas">
+    <h3>📊 Atenção ao seu banco de horas!</h3>
+    <p id="textoSaldo"></p>
     <div class="acoes" style="justify-content:center">
-      <button class="btn primario" id="btnExtraOk">Entendi</button>
+      <button class="btn primario" id="btnSaldoOk">Entendi</button>
     </div>
   </div>
 </div>
@@ -469,6 +521,18 @@
   </div>
 </div>
 
+<!-- MODAL 4: FECHAMENTO DO PONTO SE APROXIMANDO -->
+<div id="alertaFechamento" class="modal modal-fechamento oculto">
+  <div class="modal-conteudo">
+    <img src="https://media1.tenor.com/m/RkL40nP5d2QAAAAd/sweat.gif" alt="Fechamento do ponto se aproximando">
+    <h3>😰 Fechamento do ponto chegando!</h3>
+    <p id="textoFechamento"></p>
+    <div class="acoes" style="justify-content:center">
+      <button class="btn primario" id="btnFechamentoOk">Entendi</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   'use strict';
@@ -477,6 +541,7 @@
   const LS_REG = 'bancoHoras.registros.v1';
   const LS_CFG = 'bancoHoras.config.v1';
   const LS_TEMA = 'bancoHoras.tema.v1';
+  const LS_AVISO_FECH = 'bancoHoras.avisoFechamento.v1';
 
   const ORDEM = ['entrada','saidaAlmoco','voltaAlmoco','saida'];
   const LABELS = {
@@ -487,6 +552,12 @@
   };
 
   const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // Dia do mês em que o ponto fecha (15) e em que o novo período abre (16)
+  const DIA_FECHAMENTO = 15;
+  const DIA_ABERTURA   = 16;
+  // Tempo (ms) de espera antes de exibir qualquer notificação com GIF
+  const ATRASO_ALERTA  = 2000;
 
   let registros = [];
   let config = {
@@ -516,6 +587,7 @@
     const [a, m, d] = iso.split('-');
     return `${d}/${m}/${a}`;
   };
+  const fmtDataObj = d => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
   const hojeISO = () => {
     const d = new Date();
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -523,6 +595,105 @@
   const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID)
       ? crypto.randomUUID()
       : String(Date.now()) + Math.random().toString(16).slice(2);
+
+  /* ---------------- Período de fechamento do ponto ----------------
+     Regra: período vai do dia 16 de um mês até o dia 15 do mês seguinte.
+     - Se hoje é dia >= 16 → período = 16 deste mês até 15 do próximo mês.
+     - Se hoje é dia <= 15 → período = 16 do mês anterior até 15 deste mês. */
+  function calcularPeriodoPonto(ref){
+    const d = ref ? new Date(ref) : new Date();
+    const dia = d.getDate();
+    if(dia >= DIA_ABERTURA){
+      return {
+        inicio: new Date(d.getFullYear(), d.getMonth(), DIA_ABERTURA),
+        fim:    new Date(d.getFullYear(), d.getMonth() + 1, DIA_FECHAMENTO)
+      };
+    }
+    return {
+      inicio: new Date(d.getFullYear(), d.getMonth() - 1, DIA_ABERTURA),
+      fim:    new Date(d.getFullYear(), d.getMonth(), DIA_FECHAMENTO)
+    };
+  }
+
+  function diasAteFechamento(){
+    const { fim } = calcularPeriodoPonto();
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const alvo = new Date(fim); alvo.setHours(0,0,0,0);
+    return Math.round((alvo - hoje) / 86400000);
+  }
+
+  function atualizarFaixaPonto(){
+    const { inicio, fim } = calcularPeriodoPonto();
+    $('textoPeriodo').innerHTML =
+      'Fechamento do ponto: <strong>' + fmtDataObj(inicio) + '</strong> a <strong>' + fmtDataObj(fim) + '</strong>';
+
+    const dias = diasAteFechamento();
+    const el = $('diasFechamento');
+    el.classList.remove('alerta', 'urgente');
+
+    let txt;
+    if(dias === 0){
+      txt = '⚠️ Fecha hoje!';
+      el.classList.add('urgente');
+    } else if(dias === 1){
+      txt = '⚠️ Falta 1 dia para o fechamento';
+      el.classList.add('urgente');
+    } else if(dias === 2){
+      txt = '⏳ Faltam 2 dias para o fechamento';
+      el.classList.add('alerta');
+    } else {
+      txt = 'Faltam ' + dias + ' dias para o fechamento';
+    }
+    el.textContent = txt;
+  }
+
+  /* ---------------- Fila de alertas (com atraso de 2s) ---------------- */
+  let timerAlerta = null;
+
+  function agendarAlerta(fn){
+    if(timerAlerta) clearTimeout(timerAlerta);
+    timerAlerta = setTimeout(() => {
+      timerAlerta = null;
+      fn();
+    }, ATRASO_ALERTA);
+  }
+
+  function fecharTodosModais(){
+    $('alertaGif').classList.add('oculto');
+    $('alertaSaldo').classList.add('oculto');
+    $('alertaSucesso').classList.add('oculto');
+    $('alertaFechamento').classList.add('oculto');
+  }
+
+  function mostrarModal(id, textoId, html){
+    agendarAlerta(() => {
+      fecharTodosModais();
+      $(textoId).innerHTML = html;
+      $(id).classList.remove('oculto');
+    });
+  }
+
+  /* ---------------- Notificação de fechamento (2 dias / 1 dia) ---------------- */
+  function verificarAvisoFechamento(){
+    const dias = diasAteFechamento();
+    if(dias !== 1 && dias !== 2) return;
+
+    const hoje = hojeISO();
+    let ultimo = null;
+    try { ultimo = localStorage.getItem(LS_AVISO_FECH); } catch(e){}
+    if(ultimo === hoje) return;
+    try { localStorage.setItem(LS_AVISO_FECH, hoje); } catch(e){}
+
+    const { fim } = calcularPeriodoPonto();
+    const quando = (dias === 1) ? 'Falta <strong>1 dia</strong>' : 'Faltam <strong>2 dias</strong>';
+
+    mostrarModal(
+      'alertaFechamento',
+      'textoFechamento',
+      `${quando} para o fechamento do ponto (<strong>${fmtDataObj(fim)}</strong>).<br><br>` +
+      `Confira seus lançamentos e garanta que nenhum dia ficou pela metade. 😉`
+    );
+  }
 
   function trabalhadoMin(r){
     let total = 0;
@@ -543,6 +714,17 @@
   }
   function diaTemAlgo(r){
     return ORDEM.some(c => r[c]);
+  }
+
+  function calcularSaldoTotal(){
+    let totalTrab = 0, totalEsp = 0;
+    registros.forEach(r => {
+      if(diaCompleto(r)){
+        totalTrab += trabalhadoMin(r);
+        totalEsp  += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+      }
+    });
+    return totalTrab - totalEsp;
   }
 
   /* ---------------- Persistência ---------------- */
@@ -566,7 +748,6 @@
     try{
       const c = JSON.parse(localStorage.getItem(LS_CFG));
       if(c && typeof c === 'object'){
-        // Migração: mantém apenas campos usados atualmente
         config = {
           jornada: typeof c.jornada === 'number' ? c.jornada : 480,
           entradaPrev: c.entradaPrev || '08:00',
@@ -760,7 +941,6 @@
     limparAlertas();
     estadoSucessoAnterior = false;
     atualizarPrevisao();
-    // Aplica bordas verdes nos campos já corretos
     marcarCorretos();
   }
 
@@ -812,36 +992,28 @@
     const saidaAlmoco = $('saidaAlmoco').value;
     const voltaAlmoco = $('voltaAlmoco').value;
 
-    // Todos os campos preenchidos?
-    if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida) {
+    if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida){
       estadoSucessoAnterior = false;
       return;
     }
 
-    // Entrada e saída conferem com o previsto?
     if(entrada !== config.entradaPrev || saida !== config.saidaPrev){
       estadoSucessoAnterior = false;
       return;
     }
 
-    // Almoço tem exatamente 1 hora?
     const dur = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
     if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
       estadoSucessoAnterior = false;
       return;
     }
 
-    // Tudo certo! Mostra o GIF de sucesso apenas na transição
     if(!estadoSucessoAnterior){
-      // Fecha qualquer outro modal de alerta aberto
-      $('alertaGif').classList.add('oculto');
-      $('alertaExtra').classList.add('oculto');
-
-      $('textoSucesso').innerHTML =
+      const html =
         `Entrada <strong>${entrada}</strong> · Saída almoço <strong>${saidaAlmoco}</strong> · ` +
         `Volta <strong>${voltaAlmoco}</strong> · Saída <strong>${saida}</strong><br><br>` +
         `Todos os horários conferem com o previsto e o almoço tem exatamente 1 hora. 🎉`;
-      $('alertaSucesso').classList.remove('oculto');
+      mostrarModal('alertaSucesso', 'textoSucesso', html);
     }
     estadoSucessoAnterior = true;
   }
@@ -912,14 +1084,12 @@
       if(detalhes.length){
         if(!alertasMostrados[chave]){
           alertasMostrados[chave] = true;
-          // Fecha sucesso antes de mostrar divergência
           $('alertaSucesso').classList.add('oculto');
-          $('textoAlerta').innerHTML = detalhes.join('<br>');
-          $('alertaGif').classList.remove('oculto');
+          const html = detalhes.join('<br>');
+          mostrarModal('alertaGif', 'textoAlerta', html);
         }
         estadoSucessoAnterior = false;
       } else {
-        // Sem divergência neste campo: verifica se todos estão certos
         verificarSucesso();
       }
     });
@@ -929,12 +1099,16 @@
     $('alertaGif').classList.add('oculto');
   });
 
-  $('btnExtraOk').addEventListener('click', () => {
-    $('alertaExtra').classList.add('oculto');
+  $('btnSaldoOk').addEventListener('click', () => {
+    $('alertaSaldo').classList.add('oculto');
   });
 
   $('btnSucessoOk').addEventListener('click', () => {
     $('alertaSucesso').classList.add('oculto');
+  });
+
+  $('btnFechamentoOk').addEventListener('click', () => {
+    $('alertaFechamento').classList.add('oculto');
   });
 
   // Botão Novo (limpar)
@@ -991,24 +1165,37 @@
       return;
     }
 
-    let mostrarExtra = false;
+    // Detecta se houve hora extra neste lançamento
+    let extraNoDia = false;
     let trab = 0, extra = 0;
     if(diaCompleto(novoReg) && !novoReg.folga){
       trab = trabalhadoMin(novoReg);
       if(trab > config.jornada){
         extra = trab - config.jornada;
-        mostrarExtra = true;
+        extraNoDia = true;
       }
     }
 
     salvarRegistro(novoReg);
 
-    if(mostrarExtra){
-      $('textoExtra').innerHTML =
-        `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
-        `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
-        `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra foi somado ao seu banco de horas.`;
-      setTimeout(() => $('alertaExtra').classList.remove('oculto'), 150);
+    // Após salvar, recalcula o saldo total do banco de horas
+    const saldoTotal = calcularSaldoTotal();
+
+    // Sinaliza com GIF sempre que o banco estiver positivo ou negativo
+    if(saldoTotal !== 0){
+      let html = '';
+      if(extraNoDia){
+        html += `Neste lançamento você trabalhou <strong>${minParaHhmm(trab)}</strong>, ` +
+                `ou seja <strong class="pos">+${minParaHhmm(extra)}</strong> de horas extras.<br><br>`;
+      }
+      if(saldoTotal > 0){
+        html += `Seu banco de horas está <strong class="pos">POSITIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
+                `Você tem horas a mais acumuladas — continue assim! 🚀`;
+      } else {
+        html += `Seu banco de horas está <strong class="neg">NEGATIVO: ${fmtSaldo(saldoTotal)}</strong>.<br>` +
+                `Fique atento para compensar essas horas. ⚠️`;
+      }
+      mostrarModal('alertaSaldo', 'textoSaldo', html);
     }
   });
 
@@ -1226,6 +1413,10 @@
   $('data').value = hojeISO();
   carregarDiaNoForm();
   render();
+
+  atualizarFaixaPonto();
+  setInterval(atualizarFaixaPonto, 60000);
+  verificarAvisoFechamento();
 })();
 </script>
 </body>
