@@ -35,7 +35,6 @@
     min-height:100vh;
     transition:background .3s, color .3s;
   }
-  body.travado{overflow:hidden}
   .wrap{max-width:1180px;margin:0 auto}
 
   .topo{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
@@ -48,7 +47,6 @@
     padding:18px;margin-bottom:18px;transition:background .3s, border-color .3s;
   }
 
-  /* ---------- BANNER DE PERÍODO ---------- */
   .periodo-banner{
     display:flex;align-items:center;gap:18px;flex-wrap:wrap;
     padding:16px 22px;margin-bottom:20px;
@@ -297,6 +295,13 @@
   td{padding:11px 12px;border-top:1px solid var(--borda);white-space:nowrap;font-variant-numeric:tabular-nums}
   tbody tr:hover{background:var(--hover)}
   tbody tr.clickable{cursor:pointer}
+  tbody tr.destaque-salvo{
+    animation:destaque .9s ease-out;
+  }
+  @keyframes destaque{
+    0%{background:rgba(34,197,94,.28)}
+    100%{background:transparent}
+  }
   .forte{font-weight:700}
   .pos{color:var(--pos)}
   .neg{color:var(--neg)}
@@ -309,12 +314,10 @@
   .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
   .nota{color:var(--mut);font-size:.78rem;margin:12px 0 0;line-height:1.5}
 
-  /* ---------- Modal ---------- */
   .modal{
     position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;
-    z-index:1000;padding:20px;backdrop-filter:blur(6px);
-    overscroll-behavior:contain;
+    background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;
+    z-index:1000;padding:20px;backdrop-filter:blur(4px);
   }
   .modal-conteudo{
     background:var(--card);padding:24px;border-radius:16px;
@@ -341,7 +344,7 @@
 </style>
 </head>
 <body>
-<div class="wrap" id="wrapPrincipal">
+<div class="wrap">
 
   <header class="topo">
     <div>
@@ -353,7 +356,6 @@
     </button>
   </header>
 
-  <!-- BANNER DE PERÍODO -->
   <div class="periodo-banner" id="periodoBanner">
     <div class="pb-icone" id="periodoIcone">🔄</div>
     <div class="pb-info">
@@ -366,7 +368,6 @@
     </div>
   </div>
 
-  <!-- SALDO -->
   <div class="saldo-card" id="saldoCard">
     <div>
       <span class="rotulo">Saldo do banco de horas</span>
@@ -382,10 +383,8 @@
 
   <div class="layout-2col">
 
-    <!-- COLUNA ESQUERDA -->
     <div class="col-esquerda">
 
-      <!-- FORMULÁRIO -->
       <section class="painel" id="painelForm">
         <div class="form-header">
           <h2 id="tituloForm">Novo lançamento</h2>
@@ -423,7 +422,6 @@
         </form>
       </section>
 
-      <!-- CALENDÁRIO -->
       <section class="painel">
         <h2>Calendário</h2>
         <div class="cal-header">
@@ -445,8 +443,7 @@
         </div>
       </section>
 
-      <!-- HISTÓRICO -->
-      <section class="painel">
+      <section class="painel" id="painelHistorico">
         <h2>Histórico</h2>
         <div class="tabela-wrap">
           <table>
@@ -470,7 +467,6 @@
 
     </div>
 
-    <!-- COLUNA DIREITA -->
     <aside class="col-direita">
 
       <section class="painel">
@@ -555,7 +551,6 @@
   const ORDEM = ['entrada','saidaAlmoco','voltaAlmoco','saida'];
   const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-  // Dias de renovação: abre dia 16, fecha dia 15 do mês seguinte
   const DIA_ABERTURA = 16;
   const DIA_FECHAMENTO = 15;
 
@@ -566,8 +561,9 @@
     saidaPrev: '17:00'
   };
   let editandoId = null;
+  let ultimoSalvoId = null; // para destacar no histórico
   let calAno, calMes;
-  let combosAlertaMostrados = {}; // fingerprint do combo → true
+  let alertasPorCampo = {}; // chave "campo|valor" → true (evita repetição)
   let estadoSucessoAnterior = false;
 
   /* ---------------- Utilidades ---------------- */
@@ -595,32 +591,7 @@
       ? crypto.randomUUID()
       : String(Date.now()) + Math.random().toString(16).slice(2);
 
-  /* ---------------- Bloqueio de fundo (modais) ---------------- */
-  function algumModalAberto(){
-    return !!document.querySelector('.modal:not(.oculto)');
-  }
-  function atualizarBloqueio(){
-    const aberto = algumModalAberto();
-    document.body.classList.toggle('travado', aberto);
-    const wrap = $('wrapPrincipal');
-    if(aberto){
-      wrap.setAttribute('inert', '');
-      wrap.setAttribute('aria-hidden', 'true');
-    } else {
-      wrap.removeAttribute('inert');
-      wrap.removeAttribute('aria-hidden');
-    }
-  }
-  function abrirModal(el){
-    el.classList.remove('oculto');
-    atualizarBloqueio();
-  }
-  function fecharModal(el){
-    el.classList.add('oculto');
-    atualizarBloqueio();
-  }
-
-  /* ---------------- Período: 16 do mês → 15 do mês seguinte ---------------- */
+  /* ---------------- Período 16 → 15 ---------------- */
   function getPeriodoAtual(){
     const hoje = new Date();
     const dia = hoje.getDate();
@@ -628,7 +599,6 @@
     const ano = hoje.getFullYear();
 
     if(dia >= DIA_ABERTURA){
-      // Estamos dentro do período que abre dia 16 deste mês
       const inicio = new Date(ano, mes, DIA_ABERTURA);
       const fim = new Date(ano, mes + 1, DIA_FECHAMENTO);
       return {
@@ -637,7 +607,6 @@
         label: `16/${pad(mes+1)}/${ano} → 15/${pad(fim.getMonth()+1)}/${fim.getFullYear()}`
       };
     } else {
-      // Estamos dentro do período que abriu dia 16 do mês anterior
       const inicio = new Date(ano, mes - 1, DIA_ABERTURA);
       const fim = new Date(ano, mes, DIA_FECHAMENTO);
       return {
@@ -727,13 +696,10 @@
     const msDia = 86400000;
     const hojeMeiaNoite = new Date(ano, mes, dia);
 
-    // Próxima abertura (dia 16)
     let proximaAbertura;
     if(dia >= DIA_ABERTURA){
-      // Próxima é 16 do próximo mês
       proximaAbertura = new Date(ano, mes + 1, DIA_ABERTURA);
     } else {
-      // Próxima é 16 deste mês
       proximaAbertura = new Date(ano, mes, DIA_ABERTURA);
     }
 
@@ -753,7 +719,6 @@
     const banner = $('periodoBanner');
     banner.classList.remove('fechando', 'renovando');
 
-    // Data de fim do período atual
     const fimPeriodo = new Date(p.fimISO + 'T12:00:00');
     const diasAteFim = Math.round((fimPeriodo - hojeMeiaNoite) / msDia);
 
@@ -862,18 +827,15 @@
 
       let titulo = '';
 
-      // Dia 16 → abertura de período
       if(d === DIA_ABERTURA){
         cls += ' renovacao';
         titulo = '🔵 Abertura de período (dia 16)';
       }
-      // Dia 15 → fechamento de período
       if(d === DIA_FECHAMENTO){
         cls += ' renovacao fechando';
         titulo = '🟠 Fechamento de período (dia 15)';
       }
 
-      // Marca como "passado" se a data já passou
       const estaData = new Date(iso + 'T12:00:00');
       if((d === DIA_ABERTURA || d === DIA_FECHAMENTO) && estaData < hojeDate){
         cls += ' passado';
@@ -920,7 +882,7 @@
 
   /* ---------------- Formulário ---------------- */
   function limparAlertas(){
-    combosAlertaMostrados = {};
+    alertasPorCampo = {};
     document.querySelectorAll('#form input[type=time]').forEach(i => {
       i.classList.remove('divergente');
       i.classList.remove('correto');
@@ -997,81 +959,114 @@
       const [h, m] = this.value.split(':').map(Number);
       const dt = new Date(); dt.setHours(h, m + 60, 0, 0);
       $('voltaAlmoco').value = pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+      // Reavalia os campos de almoço agora que volta foi preenchida
+      setTimeout(() => {
+        avaliarCampo('saidaAlmoco');
+        avaliarCampo('voltaAlmoco');
+        verificarSucessoTotal();
+      }, 0);
     }
-    // dispara a verificação depois do auto-preenchimento
-    setTimeout(verificarAlertas, 0);
   });
 
-  /* ---------------- Verificação de alertas (só quando 4 campos preenchidos) ---------------- */
-  function verificarAlertas(){
-    if($('folga').checked){
-      estadoSucessoAnterior = false;
-      return;
-    }
-
+  /* ---------------- Sucesso total (todos os 4 corretos) ---------------- */
+  function verificarSucessoTotal(){
     const entrada = $('entrada').value;
     const saida = $('saida').value;
     const saidaAlmoco = $('saidaAlmoco').value;
     const voltaAlmoco = $('voltaAlmoco').value;
 
-    // Só prossegue quando TODOS os campos têm valor
-    if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida){
+    if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida) {
+      estadoSucessoAnterior = false;
+      return;
+    }
+    if(entrada !== config.entradaPrev || saida !== config.saidaPrev){
+      estadoSucessoAnterior = false;
+      return;
+    }
+    const dur = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
+    if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
       estadoSucessoAnterior = false;
       return;
     }
 
-    const combo = `${entrada}|${saidaAlmoco}|${voltaAlmoco}|${saida}`;
-
-    // Se esse combo exato já foi processado, não repete
-    if(combosAlertaMostrados[combo]) return;
-    combosAlertaMostrados[combo] = true;
-
-    // Verifica divergências
-    const detalhes = [];
-    if(entrada !== config.entradaPrev){
-      detalhes.push(`Entrada: <strong>${entrada}</strong> (previsto ${config.entradaPrev})`);
-    }
-    if(saida !== config.saidaPrev){
-      detalhes.push(`Saída: <strong>${saida}</strong> (previsto ${config.saidaPrev})`);
-    }
-    const dur = hhmmParaMin(voltaAlmoco) - hhmmParaMin(saidaAlmoco);
-    if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
-      detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
-    }
-
-    if(detalhes.length){
-      // Fecha sucesso se estiver aberto
-      fecharModal($('alertaSucesso'));
-      $('textoAlerta').innerHTML = detalhes.join('<br>');
-      abrirModal($('alertaGif'));
-      estadoSucessoAnterior = false;
-    } else {
-      // Tudo certo → mostra GIF de sucesso
-      fecharModal($('alertaGif'));
-      fecharModal($('alertaExtra'));
+    if(!estadoSucessoAnterior){
+      $('alertaGif').classList.add('oculto');
+      $('alertaExtra').classList.add('oculto');
       $('textoSucesso').innerHTML =
         `Entrada <strong>${entrada}</strong> · Saída almoço <strong>${saidaAlmoco}</strong> · ` +
         `Volta <strong>${voltaAlmoco}</strong> · Saída <strong>${saida}</strong><br><br>` +
         `Todos os horários conferem com o previsto e o almoço tem exatamente 1 hora. 🎉`;
-      abrirModal($('alertaSucesso'));
-      estadoSucessoAnterior = true;
+      $('alertaSucesso').classList.remove('oculto');
+    }
+    estadoSucessoAnterior = true;
+  }
+
+  /* ---------------- Avaliação por campo ---------------- */
+  function avaliarCampo(campo){
+    const valor = $(campo).value;
+    if(!valor) return;
+
+    const chave = campo + '|' + valor;
+    // Evita repetir o mesmo alerta para o mesmo valor
+    if(alertasPorCampo[chave]) return;
+
+    const detalhes = [];
+    let alerta = false;
+
+    // Validação individual
+    if(campo === 'entrada' && config.entradaPrev && valor !== config.entradaPrev){
+      detalhes.push(`Entrada: <strong>${valor}</strong> (previsto ${config.entradaPrev})`);
+      alerta = true;
+    }
+    if(campo === 'saida' && config.saidaPrev && valor !== config.saidaPrev){
+      detalhes.push(`Saída: <strong>${valor}</strong> (previsto ${config.saidaPrev})`);
+      alerta = true;
+    }
+    // Almoço: valida duração se ambos preenchidos
+    if(campo === 'saidaAlmoco' && $('voltaAlmoco').value){
+      const dur = hhmmParaMin($('voltaAlmoco').value) - hhmmParaMin(valor);
+      if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
+        detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
+        alerta = true;
+      }
+    }
+    if(campo === 'voltaAlmoco' && $('saidaAlmoco').value){
+      const dur = hhmmParaMin(valor) - hhmmParaMin($('saidaAlmoco').value);
+      if(Math.abs(dur) !== 60 && Math.abs(dur) !== (1440 - 60)){
+        detalhes.push(`Almoço: <strong>${minParaHhmm(Math.abs(dur))}</strong> (esperado 01:00)`);
+        alerta = true;
+      }
+    }
+
+    if(alerta){
+      alertasPorCampo[chave] = true;
+      $('alertaSucesso').classList.add('oculto');
+      $('textoAlerta').innerHTML = detalhes.join('<br>');
+      $('alertaGif').classList.remove('oculto');
+      estadoSucessoAnterior = false;
+    } else {
+      // Campo OK — verifica se todos os 4 estão preenchidos e corretos
+      verificarSucessoTotal();
     }
   }
 
-  // Atualiza apenas a previsão e o status visual enquanto digita; não dispara alertas
+  /* ---------------- Listeners dos campos de horário ---------------- */
   document.querySelectorAll('#form input[type=time]').forEach(inp => {
     inp.addEventListener('input', atualizarPrevisao);
     inp.addEventListener('change', function(){
       atualizarPrevisao();
       marcarCorretos();
-      // Só verifica alertas quando TODOS os 4 campos estiverem preenchidos
-      verificarAlertas();
+      avaliarCampo(this.id);
+    });
+    inp.addEventListener('blur', function(){
+      // Caso o change não tenha disparado (ex: colou valor), avalia no blur também
+      if(this.value) avaliarCampo(this.id);
     });
   });
 
-  $('btnFecharAlerta').addEventListener('click', () => fecharModal($('alertaGif')));
-  $('btnExtraOk').addEventListener('click', () => fecharModal($('alertaExtra')));
-  $('btnSucessoOk').addEventListener('click', () => fecharModal($('alertaSucesso')));
+  $('btnFecharAlerta').addEventListener('click', () => $('alertaGif').classList.add('oculto'));
+  $('btnExtraOk').addEventListener('click', () => $('alertaExtra').classList.add('oculto'));
+  $('btnSucessoOk').addEventListener('click', () => $('alertaSucesso').classList.add('oculto'));
 
   $('btnNovo').addEventListener('click', () => {
     $('data').value = hojeISO();
@@ -1096,7 +1091,7 @@
     if($('folga').checked){
       estadoSucessoAnterior = false;
     } else {
-      verificarAlertas();
+      verificarSucessoTotal();
     }
   });
 
@@ -1136,34 +1131,56 @@
 
     salvarRegistro(novoReg);
 
-    // Scroll automático para o topo ao salvar
+    // Scroll até o histórico para mostrar a atualização
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 80);
+      const painelHist = $('painelHistorico');
+      if(painelHist){
+        painelHist.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 120);
 
     if(mostrarExtra){
       $('textoExtra').innerHTML =
         `Você trabalhou <strong>${minParaHhmm(trab)}</strong>, ou seja, ` +
         `<strong class="pos">+${minParaHhmm(extra)}</strong> além da jornada de ` +
         `${minParaHhmm(config.jornada)}.<br><br>Esse tempo extra foi somado ao seu banco de horas.`;
-      setTimeout(() => abrirModal($('alertaExtra')), 400);
+      setTimeout(() => $('alertaExtra').classList.remove('oculto'), 450);
     }
   });
 
   function salvarRegistro(novoReg){
+    let idSalvo;
     if(editandoId){
       const i = registros.findIndex(r => r.id === editandoId);
-      if(i > -1) registros[i] = Object.assign({ id: editandoId }, novoReg);
+      if(i > -1){
+        registros[i] = Object.assign({ id: editandoId }, novoReg);
+        idSalvo = editandoId;
+      }
     } else {
       novoReg.id = uid();
       registros.push(novoReg);
+      idSalvo = novoReg.id;
     }
     persistir();
 
+    ultimoSalvoId = idSalvo;
+
     const dataAtual = $('data').value;
     editandoId = (registros.find(r => r.data === dataAtual) || {}).id || null;
+
+    // Recarrega o form com os dados salvos
     carregarDiaNoForm();
+    // Renderiza tudo (histórico + calendário + saldo)
     render();
+
+    // Aplica destaque na linha salva
+    setTimeout(() => {
+      const linha = document.querySelector(`tr[data-editar="${idSalvo}"]`);
+      if(linha){
+        linha.classList.add('destaque-salvo');
+        setTimeout(() => linha.classList.remove('destaque-salvo'), 1000);
+      }
+    }, 40);
   }
 
   /* ---------------- Configurações ---------------- */
@@ -1173,7 +1190,7 @@
       persistir();
       limparAlertas();
       marcarCorretos();
-      verificarAlertas();
+      verificarSucessoTotal();
     });
   });
 
@@ -1285,7 +1302,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 11,
+      app: 'banco-de-horas', versao: 12,
       exportadoEm: new Date().toISOString(),
       config, registros
     };
@@ -1390,7 +1407,6 @@
   $('data').value = hojeISO();
   carregarDiaNoForm();
   render();
-  atualizarBloqueio();
 
   document.addEventListener('visibilitychange', () => {
     if(!document.hidden) render();
