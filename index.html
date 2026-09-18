@@ -517,9 +517,9 @@
   const $ = id => document.getElementById(id);
 
   // Chaves de armazenamento
-  const LS_DADOS = 'bancoHoras.dados.v2';       // formato novo (com timestamp)
-  const LS_REG   = 'bancoHoras.registros.v1';   // legado (compat)
-  const LS_CFG   = 'bancoHoras.config.v1';      // legado (compat)
+  const LS_DADOS = 'bancoHoras.dados.v2';
+  const LS_REG   = 'bancoHoras.registros.v1';
+  const LS_CFG   = 'bancoHoras.config.v1';
   const LS_TEMA  = 'bancoHoras.tema.v1';
   const LS_AVISO = 'bancoHoras.avisoFechamento.v1';
 
@@ -528,9 +528,8 @@
 
   const DIA_FECHAMENTO = 15;
   const DIA_ABERTURA   = 16;
-  const ATRASO_ALERTA  = 2000;
+  const ATRASO_ALERTA  = 1000;   // <-- alterado de 2000 para 1000 ms
 
-  // Estado
   let registros = [];
   let config = { jornada: 480, entradaPrev: '08:00', saidaPrev: '17:00' };
   let editandoId = null;
@@ -540,11 +539,6 @@
 
   /* ============================================================
      CAMADA DE ARMAZENAMENTO — 3 NÍVEIS
-     - localStorage   (persiste entre sessões)
-     - sessionStorage (persiste entre reloads na mesma aba)
-     - window.name    (persiste entre reloads na mesma aba — reserva)
-     A gravação escreve nos TRÊS. A leitura pega o MAIS RECENTE
-     (pelo campo _savedAt) entre os que responderem.
      ============================================================ */
   const Storage = {
     lsOK: false,
@@ -594,12 +588,9 @@
     },
 
     _writeWN(obj){
-      try{
-        window.name = this.WN_PREFIX + JSON.stringify(obj);
-      }catch(e){ /* ignora */ }
+      try{ window.name = this.WN_PREFIX + JSON.stringify(obj); }catch(e){}
     },
 
-    // Lê de UMA camada específica
     getFromLayer(layer, chave){
       try{
         if(layer === 'ls' && this.lsOK) return localStorage.getItem(chave);
@@ -612,7 +603,6 @@
       return null;
     },
 
-    // Lê da camada de maior prioridade que tenha valor
     get(chave){
       const v1 = this.getFromLayer('ls', chave);
       if(v1 !== null) return v1;
@@ -623,7 +613,6 @@
       return null;
     },
 
-    // Escreve em todas as camadas
     set(chave, valor){
       let ok = false;
       if(this.lsOK){ try{ localStorage.setItem(chave, valor); ok = true; }catch(e){} }
@@ -674,7 +663,6 @@
     return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
   };
 
-  // Chama função protegida e loga erros — não deixa uma falha derrubar o resto
   function safeCall(rotulo, fn){
     try{ return fn(); }
     catch(err){
@@ -734,16 +722,11 @@
       if(raw){
         try{
           const p = JSON.parse(raw);
-          if(p && Array.isArray(p.registros)){
-            achados.push({ layer, dados: p });
-          }
+          if(p && Array.isArray(p.registros)) achados.push({ layer, dados: p });
         }catch(e){}
       }
     });
-    if(!achados.length){
-      alert('Nenhum dado encontrado para recuperar.');
-      return;
-    }
+    if(!achados.length){ alert('Nenhum dado encontrado para recuperar.'); return; }
     achados.sort((a,b) => (b.dados._savedAt||0) - (a.dados._savedAt||0));
     const melhor = achados[0];
     registros = melhor.dados.registros.map(normalizarRegistro);
@@ -795,24 +778,16 @@
 
   /* ---------------- Persistência ---------------- */
   function persistir(){
-    if(!Storage.disponivel()){
-      throw new Error('Nenhum armazenamento disponível');
-    }
-    const payload = {
-      _savedAt: Date.now(),
-      registros: registros,
-      config: config
-    };
+    if(!Storage.disponivel()) throw new Error('Nenhum armazenamento disponível');
+    const payload = { _savedAt: Date.now(), registros: registros, config: config };
     const json = JSON.stringify(payload);
 
     const ok = Storage.set(LS_DADOS, json);
-    // Grava também no formato legado (retrocompatibilidade)
     Storage.set(LS_REG, JSON.stringify(registros));
     Storage.set(LS_CFG, JSON.stringify(config));
 
     if(!ok) throw new Error('Falha ao gravar em nenhuma das camadas');
 
-    // Verificação
     const v = Storage.get(LS_DADOS);
     if(!v) throw new Error('Verificação falhou: nada foi lido de volta');
     const parsed = JSON.parse(v);
@@ -844,7 +819,7 @@
         nivel: 'grave',
         titulo: 'Sem armazenamento persistente',
         mensagem: 'Seus lançamentos <b>NÃO serão salvos</b> entre recarregamentos. ' +
-          (isFile ? 'Você está abrindo via <code>file://</code>. Hospede em um servidor local (ex.: <code>python -m http.server</code>) ou use <b>Exportar</b>.' : 'Habilite cookies/armazenamento neste site.'),
+          (isFile ? 'Você está abrindo via <code>file://</code>. Hospede em um servidor local ou use <b>Exportar</b>.' : 'Habilite cookies/armazenamento neste site.'),
         botaoExportar: true
       });
       setStatusSalvo('⚠ Sem armazenamento', 'erro');
@@ -852,29 +827,21 @@
       mostrarAvisoStorage({
         nivel: 'aviso',
         titulo: 'Persistência limitada à sessão',
-        mensagem: 'O <code>localStorage</code> está bloqueado, mas as camadas de sessão funcionam. ' +
-          'Seus dados sobrevivem a <b>recarregamentos</b>, mas não a fechar/reabrir o navegador.',
+        mensagem: 'O <code>localStorage</code> está bloqueado, mas as camadas de sessão funcionam.',
         botaoExportar: true
       });
       setStatusSalvo('✓ Salvo (sessão)', 'ok');
-    } else if(st.ls && (!st.ss || !st.wn)){
-      // localStorage OK é o mais importante
-      setStatusSalvo('✓ Salvo automaticamente', 'ok');
     } else {
       setStatusSalvo('✓ Salvo automaticamente', 'ok');
     }
 
-    // === CARREGA REGISTROS ===
-    // 1) Tenta formato novo (com timestamp) em cada camada e pega o mais recente
     const candidatos = [];
     ['ls','ss','wn'].forEach(layer => {
       const raw = Storage.getFromLayer(layer, LS_DADOS);
       if(raw){
         try{
           const p = JSON.parse(raw);
-          if(p && Array.isArray(p.registros)){
-            candidatos.push({ layer, dados: p, ts: p._savedAt || 0 });
-          }
+          if(p && Array.isArray(p.registros)) candidatos.push({ layer, dados: p, ts: p._savedAt || 0 });
         }catch(e){ console.warn('JSON inválido em', layer); }
       }
     });
@@ -885,21 +852,16 @@
       registros = melhor.dados.registros
         .filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
         .map(normalizarRegistro);
-      if(melhor.dados.config){
-        config = Object.assign(config, melhor.dados.config);
-      }
-      console.log('[BancoHoras] Carregados ' + registros.length + ' registros da camada "' + melhor.layer + '" (ts=' + melhor.ts + ')');
+      if(melhor.dados.config) config = Object.assign(config, melhor.dados.config);
+      console.log('[BancoHoras] Carregados ' + registros.length + ' registros da camada "' + melhor.layer + '"');
     } else {
-      // 2) Fallback para formato legado
       try{
         const raw = Storage.get(LS_REG);
         const r = raw ? JSON.parse(raw) : null;
         if(Array.isArray(r)){
-          registros = r
-            .filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data))
-            .map(normalizarRegistro);
+          registros = r.filter(x => x && typeof x.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.data)).map(normalizarRegistro);
         }
-      }catch(e){ console.warn('Falha ao ler formato legado:', e); registros = []; }
+      }catch(e){ registros = []; }
 
       try{
         const raw = Storage.get(LS_CFG);
@@ -913,13 +875,9 @@
         }
       }catch(e){}
 
-      if(registros.length){
-        // Migra imediatamente para o formato novo
-        try{ persistir(); }catch(e){}
-      }
+      if(registros.length){ try{ persistir(); }catch(e){} }
     }
 
-    // Tema
     let tema = null;
     try{ tema = Storage.get(LS_TEMA); }catch(e){}
     if(tema !== 'claro' && tema !== 'escuro'){
@@ -954,15 +912,11 @@
     const textoEl = $('textoPeriodo');
     const diasEl = $('diasFechamento');
     const faixaEl = $('faixaPonto');
-    if(!textoEl || !diasEl || !faixaEl){
-      console.warn('[BancoHoras] Elementos da faixa de fechamento não encontrados');
-      return;
-    }
+    if(!textoEl || !diasEl || !faixaEl) return;
     faixaEl.classList.remove('oculto');
 
     const { inicio, fim } = calcularPeriodoPonto();
-    textoEl.innerHTML =
-      'Fechamento do ponto: <strong>' + fmtDataObj(inicio) + '</strong> a <strong>' + fmtDataObj(fim) + '</strong>';
+    textoEl.innerHTML = 'Fechamento do ponto: <strong>' + fmtDataObj(inicio) + '</strong> a <strong>' + fmtDataObj(fim) + '</strong>';
 
     const dias = diasAteFechamento();
     diasEl.classList.remove('alerta','urgente');
@@ -976,7 +930,7 @@
     diasEl.textContent = txt;
   }
 
-  /* ---------------- Alertas com atraso ---------------- */
+  /* ---------------- Alertas com atraso de 1s ---------------- */
   let timerAlerta = null, timerSaldo = null;
 
   function fecharTodosModais(){
@@ -1331,8 +1285,8 @@
                   'ou seja <strong class="pos">+' + minParaHhmm(extra) + '</strong> de horas extras.<br><br>';
         }
         if(saldoTotal > 0){
-          html += 'Seu banco de horas está <strong class="pos">POSITIVO: ' + fmtSaldo(saldoTotal) + '</strong>.<br>' +
-                  'Você tem horas a mais acumuladas — continue assim! 🚀';
+          // Frase "Você tem horas a mais acumuladas — continue assim! 🚀" REMOVIDA
+          html += 'Seu banco de horas está <strong class="pos">POSITIVO: ' + fmtSaldo(saldoTotal) + '</strong>.';
         } else {
           html += 'Seu banco de horas está <strong class="neg">NEGATIVO: ' + fmtSaldo(saldoTotal) + '</strong>.<br>' +
                   'Fique atento para compensar essas horas. ⚠️';
@@ -1439,7 +1393,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 11,
+      app: 'banco-de-horas', versao: 12,
       exportadoEm: new Date().toISOString(),
       config: config, registros: registros
     };
@@ -1497,35 +1451,19 @@
   });
 
   /* ---------------- Redes de segurança ---------------- */
-  window.addEventListener('beforeunload', () => {
+  function salvarRapido(){
     try{
       if(Storage.disponivel()){
         const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
         Storage.set(LS_DADOS, payload);
       }
     }catch(e){}
-  });
-
-  window.addEventListener('pagehide', () => {
-    try{
-      if(Storage.disponivel()){
-        const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
-        Storage.set(LS_DADOS, payload);
-      }
-    }catch(e){}
-  });
-
-  setInterval(() => {
-    try{
-      if(Storage.disponivel()){
-        const payload = JSON.stringify({ _savedAt: Date.now(), registros: registros, config: config });
-        Storage.set(LS_DADOS, payload);
-      }
-    }catch(e){}
-  }, 10000);
+  }
+  window.addEventListener('beforeunload', salvarRapido);
+  window.addEventListener('pagehide', salvarRapido);
+  setInterval(salvarRapido, 10000);
 
   /* ---------------- Inicialização ---------------- */
-  // Cada passo é protegido individualmente para que uma falha não impeça os outros
   safeCall('carregar', carregar);
 
   safeCall('preencher form', () => {
@@ -1547,13 +1485,9 @@
 
   safeCall('render inicial', render);
   safeCall('atualizar faixa de ponto', atualizarFaixaPonto);
-
-  // Atualiza a faixa a cada 60s (recalcula virada de dia)
   setInterval(() => safeCall('atualizar faixa (tick)', atualizarFaixaPonto), 60000);
-
   safeCall('verificar aviso de fechamento', verificarAvisoFechamento);
 
-  // Log final para diagnóstico
   console.log('[BancoHoras] Inicialização concluída. Registros em memória:', registros.length);
 })();
 </script>
