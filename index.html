@@ -199,16 +199,24 @@
     background:var(--card2);border-color:var(--borda);border-left-color:var(--borda);
     opacity:.75;
   }
+  .previsao-saida.sabado{
+    background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(139,92,246,.03));
+    border-color:rgba(139,92,246,.4);
+    border-left-color:var(--roxo);
+  }
   .previsao-valor{
     font-size:1.7rem;font-weight:800;color:var(--azul);
     font-variant-numeric:tabular-nums;letter-spacing:.5px;line-height:1;
   }
   .previsao-saida.inativo .previsao-valor{color:var(--mut)}
+  .previsao-saida.sabado .previsao-valor{color:var(--roxo);font-size:1.4rem}
   .previsao-det{
     font-size:.78rem;color:var(--mut);text-align:right;line-height:1.5;
     font-variant-numeric:tabular-nums;
   }
   .previsao-det strong{color:var(--txt);font-weight:600}
+  .previsao-saida.sabado .previsao-det strong{color:var(--roxo)}
+
   .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--mut);cursor:pointer;margin-top:16px}
   .check input{width:16px;height:16px;accent-color:var(--azul);cursor:pointer}
   .btn{
@@ -245,6 +253,7 @@
     text-align:center;font-size:.66rem;color:var(--mut);
     text-transform:uppercase;letter-spacing:.6px;font-weight:600;padding:4px 0;
   }
+  .cal-diasSemana div.sab{color:var(--roxo)}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
   .cal-dia{
     position:relative;aspect-ratio:1;border:1px solid var(--borda);
@@ -255,6 +264,7 @@
   }
   .cal-dia.vazio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
   .cal-dia:not(.vazio):hover{background:var(--hover-btn);transform:scale(1.05)}
+  .cal-dia.sabado{background:rgba(139,92,246,.06);border-color:rgba(139,92,246,.25)}
   .cal-dia.completo{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.12);color:var(--pos)}
   .cal-dia.incompleto{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.12);color:var(--laranja)}
   .cal-dia.folga{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.12);color:var(--roxo)}
@@ -269,6 +279,7 @@
   .lg-completo{background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.5)!important}
   .lg-incompleto{background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.5)!important}
   .lg-folga{background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5)!important}
+  .lg-sabado{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3)!important}
 
   .tabela-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--borda)}
   table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
@@ -285,6 +296,7 @@
   .mut{color:var(--mut);opacity:.65}
   .tag{font-size:.62rem;background:#64748b;color:#fff;padding:2px 6px;border-radius:5px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px}
   .tag.andamento{background:var(--laranja)}
+  .tag.sabado{background:var(--roxo)}
   .icone{background:none;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;opacity:.65;color:var(--txt)}
   .icone:hover{opacity:1;background:var(--hover-btn)}
   .vazio{padding:30px;text-align:center;color:var(--mut);font-size:.9rem}
@@ -314,8 +326,6 @@
   .modal-fechamento h3{color:var(--laranja)}
   .modal-saldo .modal-conteudo{border:1px solid rgba(59,130,246,.45);box-shadow:0 0 0 1px rgba(59,130,246,.15),0 20px 50px -12px rgba(59,130,246,.4);}
   .modal-saldo h3{color:var(--azul)}
-
-  /* Modal de saída antecipada com crédito (big brain) */
   .modal-bigbrain .modal-conteudo{
     border:1px solid rgba(139,92,246,.5);
     box-shadow:0 0 0 1px rgba(139,92,246,.18),0 20px 50px -12px rgba(139,92,246,.5);
@@ -348,7 +358,6 @@
     </div>
   </div>
 
-  <!-- FAIXA: PERÍODO DE FECHAMENTO DO PONTO -->
   <div class="faixa-ponto" id="faixaPonto">
     <span class="faixa-icone">📅</span>
     <span id="textoPeriodo">Fechamento do ponto: —</span>
@@ -385,7 +394,7 @@
           </div>
           <div class="previsao-saida inativo" id="previsaoBox">
             <div>
-              <span class="rotulo">Saída prevista</span>
+              <span class="rotulo" id="previsaoRotulo">Saída prevista</span>
               <div class="previsao-valor" id="previsaoValor">—:—</div>
             </div>
             <div class="previsao-det" id="previsaoDet">Informe a entrada para calcular</div>
@@ -411,13 +420,14 @@
           <button type="button" class="cal-hoje" id="calHoje" title="Ir para hoje">Hoje</button>
         </div>
         <div class="cal-diasSemana">
-          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+          <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div class="sab">Sáb</div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
         <div class="cal-legenda">
           <span><i class="lg lg-completo"></i>Completo</span>
           <span><i class="lg lg-incompleto"></i>Incompleto</span>
           <span><i class="lg lg-folga"></i>Folga</span>
+          <span><i class="lg lg-sabado"></i>Sábado (banco)</span>
           <span style="margin-left:auto;opacity:.75">Clique em um dia para editar</span>
         </div>
       </section>
@@ -435,7 +445,7 @@
             <tbody id="corpo"></tbody>
           </table>
         </div>
-        <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias parciais aparecem em laranja. Clique em uma linha para editar.</p>
+        <p class="nota">Apenas dias com as 4 batidas contam no saldo total. Dias parciais aparecem em laranja. Sábados não têm jornada exigida — tudo conta como banco de horas. Clique em uma linha para editar.</p>
       </section>
     </div>
 
@@ -446,7 +456,7 @@
           <div><label for="entradaPrev">Entrada</label><input type="time" id="entradaPrev" value="08:00"></div>
           <div><label for="saidaPrev">Saída</label><input type="time" id="saidaPrev" value="17:00"></div>
         </div>
-        <p class="nota">O almoço é calculado automaticamente como 1 hora após a batida de saída para o almoço.</p>
+        <p class="nota">Válidos de segunda a sexta. Aos sábados não há jornada fixa.</p>
       </section>
 
       <section class="painel">
@@ -454,7 +464,7 @@
         <div class="grid">
           <div><label for="jornada">Duração</label><input type="time" id="jornada" value="08:00"></div>
         </div>
-        <p class="nota">Saldo do dia = trabalhado − jornada esperada.</p>
+        <p class="nota">Saldo do dia = trabalhado − jornada esperada. Sábados têm jornada 00:00.</p>
       </section>
 
       <section class="painel">
@@ -484,7 +494,6 @@
   </div>
 </div>
 
-<!-- NOVO MODAL: SAÍDA ANTECIPADA COM BANCO POSITIVO -->
 <div id="alertaBigBrain" class="modal modal-bigbrain oculto">
   <div class="modal-conteudo">
     <img src="https://media1.tenor.com/m/Ylv1nAq2sz4AAAAC/big-brain.gif" alt="Saída antecipada com crédito">
@@ -547,6 +556,7 @@
   const DIA_FECHAMENTO = 15;
   const DIA_ABERTURA   = 16;
   const ATRASO_ALERTA  = 1000;
+  const DIA_SABADO     = 6;   // 0=Dom, 6=Sáb
 
   let registros = [];
   let config = { jornada: 480, entradaPrev: '08:00', saidaPrev: '17:00' };
@@ -660,6 +670,25 @@
     return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
   };
 
+  // Detecta se a data ISO cai em um sábado
+  function isSabado(iso){
+    if(!iso || typeof iso !== 'string') return false;
+    const p = iso.split('-');
+    if(p.length !== 3) return false;
+    const a = Number(p[0]), m = Number(p[1]), d = Number(p[2]);
+    if(!a || !m || !d) return false;
+    return new Date(a, m - 1, d).getDay() === DIA_SABADO;
+  }
+
+  // Jornada efetivamente exigida para um registro.
+  // Sábados e folgas → 0. Demais → valor armazenado ou config.jornada.
+  function esperadoEfetivo(r){
+    if(!r) return 0;
+    if(r.folga) return 0;
+    if(isSabado(r.data)) return 0;
+    return (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+  }
+
   function safeCall(rotulo, fn){
     try{ return fn(); }
     catch(err){ console.error('[BancoHoras] Erro em ' + rotulo + ':', err); return undefined; }
@@ -747,7 +776,7 @@
     registros.forEach(r => {
       if(diaCompleto(r)){
         t += trabalhadoMin(r);
-        e += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+        e += esperadoEfetivo(r);
       }
     });
     return t - e;
@@ -988,17 +1017,41 @@
       duracaoAlmoco: durAlmoco, jornada: config.jornada
     };
   }
+
   function atualizarPrevisao(){
     const box = $('previsaoBox'), valEl = $('previsaoValor'), detEl = $('previsaoDet');
-    if(!box || !valEl || !detEl) return;
+    const rotEl = $('previsaoRotulo');
+    if(!box || !valEl || !detEl || !rotEl) return;
+
+    const iso = $('data').value;
+    const ehSab = isSabado(iso);
+
+    box.classList.remove('sabado');
+
     if($('folga').checked){
-      box.classList.add('inativo'); valEl.textContent = '—:—';
-      detEl.textContent = 'Dia marcado como folga'; return;
+      box.classList.add('inativo');
+      rotEl.textContent = 'Saída prevista';
+      valEl.textContent = '—:—';
+      detEl.textContent = 'Dia marcado como folga';
+      return;
     }
+
+    if(ehSab){
+      box.classList.remove('inativo');
+      box.classList.add('sabado');
+      rotEl.textContent = 'Sábado';
+      valEl.textContent = 'Livre';
+      detEl.innerHTML = 'Toda hora trabalhada será <strong>banco de horas</strong>';
+      return;
+    }
+
+    rotEl.textContent = 'Saída prevista';
     const p = calcularSaidaPrevista();
     if(!p){
-      box.classList.add('inativo'); valEl.textContent = '—:—';
-      detEl.textContent = 'Informe a entrada para calcular'; return;
+      box.classList.add('inativo');
+      valEl.textContent = '—:—';
+      detEl.textContent = 'Informe a entrada para calcular';
+      return;
     }
     box.classList.remove('inativo');
     valEl.textContent = p.hhmm;
@@ -1020,7 +1073,10 @@
     for(let d = 1; d <= diasNoMes; d++){
       const iso = calAno + '-' + pad(calMes + 1) + '-' + pad(d);
       const reg = registros.find(r => r.data === iso);
+      const ehSab = new Date(calAno, calMes, d).getDay() === DIA_SABADO;
+
       let cls = 'cal-dia';
+      if(ehSab) cls += ' sabado';
       if(reg){
         if(reg.folga) cls += ' folga';
         else if(diaCompleto(reg)) cls += ' completo';
@@ -1072,7 +1128,7 @@
       $('voltaAlmoco').value = r.voltaAlmoco || '';
       $('saida').value       = r.saida || '';
       $('folga').checked     = !!r.folga;
-      $('tituloForm').textContent = 'Editando ' + fmtData(iso);
+      $('tituloForm').textContent = 'Editando ' + fmtData(iso) + (isSabado(iso) ? ' (sábado)' : '');
       $('btnSalvar').textContent = 'Salvar alterações';
       $('btnExcluir').classList.remove('oculto');
     } else {
@@ -1080,7 +1136,7 @@
       $('entrada').value = ''; $('saidaAlmoco').value = '';
       $('voltaAlmoco').value = ''; $('saida').value = '';
       $('folga').checked = false;
-      $('tituloForm').textContent = 'Novo lançamento';
+      $('tituloForm').textContent = 'Novo lançamento' + (isSabado(iso) ? ' (sábado)' : '');
       $('btnSalvar').textContent = 'Salvar lançamento';
       $('btnExcluir').classList.add('oculto');
     }
@@ -1089,29 +1145,30 @@
     atualizarPrevisao();
     marcarCorretos();
   }
+
   function marcarCorretos(){
     const entrada = $('entrada').value, saida = $('saida').value;
     const saidaAlmoco = $('saidaAlmoco').value, voltaAlmoco = $('voltaAlmoco').value;
+    const iso = $('data').value;
+    const ehSab = isSabado(iso);
 
-    if(entrada && config.entradaPrev && entrada === config.entradaPrev){
-      $('entrada').classList.add('correto');
-      $('entrada').classList.remove('antecipado');
-    } else {
-      $('entrada').classList.remove('correto');
-      $('entrada').classList.remove('antecipado');
-    }
-
-    // Saída: considera "correto" quando igual ao previsto OU quando
-    // é uma saída antecipada com banco positivo (crédito cobre)
-    const saidaEl = $('saida');
+    const entradaEl = $('entrada'), saidaEl = $('saida');
+    entradaEl.classList.remove('correto','antecipado','divergente');
     saidaEl.classList.remove('correto','antecipado','divergente');
-    if(saida && config.saidaPrev){
-      const minSaida = hhmmParaMin(saida);
-      const minPrev  = hhmmParaMin(config.saidaPrev);
-      if(saida === config.saidaPrev){
-        saidaEl.classList.add('correto');
-      } else if(minSaida < minPrev && calcularSaldoTotal() > 0){
-        saidaEl.classList.add('antecipado');
+
+    // Sábado não tem horário fixo — não marca entrada/saída como corretas
+    if(!ehSab){
+      if(entrada && config.entradaPrev && entrada === config.entradaPrev){
+        entradaEl.classList.add('correto');
+      }
+      if(saida && config.saidaPrev){
+        const minSaida = hhmmParaMin(saida);
+        const minPrev  = hhmmParaMin(config.saidaPrev);
+        if(saida === config.saidaPrev){
+          saidaEl.classList.add('correto');
+        } else if(minSaida < minPrev && calcularSaldoTotal() > 0){
+          saidaEl.classList.add('antecipado');
+        }
       }
     }
 
@@ -1137,6 +1194,10 @@
 
   /* ---------------- Verifica sucesso ---------------- */
   function verificarSucesso(){
+    const iso = $('data').value;
+    // Sábado não tem previsão — não dispara o sucesso
+    if(isSabado(iso)){ estadoSucessoAnterior = false; return; }
+
     const entrada = $('entrada').value, saida = $('saida').value;
     const saidaAlmoco = $('saidaAlmoco').value, voltaAlmoco = $('voltaAlmoco').value;
     if(!entrada || !saidaAlmoco || !voltaAlmoco || !saida){ estadoSucessoAnterior = false; return; }
@@ -1163,39 +1224,39 @@
         marcarCorretos(); verificarSucesso(); return;
       }
 
-      const chave = campo + ':' + valor;
+      const ehSab = isSabado($('data').value);
+      const chave = campo + ':' + valor + ':' + (ehSab ? 'sab' : 'sem');
       const detalhes = [];
-      let bigBrain = null;   // informações para o modal de saída antecipada com crédito
+      let bigBrain = null;
 
-      if(campo === 'entrada' && config.entradaPrev && valor !== config.entradaPrev){
-        detalhes.push('Entrada: <strong>' + valor + '</strong> (previsto ' + config.entradaPrev + ')');
-        this.classList.add('divergente');
-        this.classList.remove('correto','antecipado');
-      } else if(campo === 'saida' && config.saidaPrev && valor !== config.saidaPrev){
-        const minSaida = hhmmParaMin(valor);
-        const minPrev  = hhmmParaMin(config.saidaPrev);
-        const saidaAntecipada = minSaida < minPrev;
-        const saldoAtual = calcularSaldoTotal();
-
-        if(saidaAntecipada && saldoAtual > 0){
-          // Saída antecipada coberta pelo banco positivo → notificação especial (big brain)
-          this.classList.remove('divergente','correto');
-          this.classList.add('antecipado');
-          bigBrain = {
-            saldo: saldoAtual,
-            diferenca: minPrev - minSaida
-          };
-        } else {
-          // Comportamento normal: horário fora do previsto
-          detalhes.push('Saída: <strong>' + valor + '</strong> (previsto ' + config.saidaPrev + ')');
+      // Sábado: entrada e saída não têm horário previsto — nenhuma verificação
+      if(!ehSab){
+        if(campo === 'entrada' && config.entradaPrev && valor !== config.entradaPrev){
+          detalhes.push('Entrada: <strong>' + valor + '</strong> (previsto ' + config.entradaPrev + ')');
           this.classList.add('divergente');
           this.classList.remove('correto','antecipado');
+        } else if(campo === 'saida' && config.saidaPrev && valor !== config.saidaPrev){
+          const minSaida = hhmmParaMin(valor);
+          const minPrev  = hhmmParaMin(config.saidaPrev);
+          const saidaAntecipada = minSaida < minPrev;
+          const saldoAtual = calcularSaldoTotal();
+
+          if(saidaAntecipada && saldoAtual > 0){
+            this.classList.remove('divergente','correto');
+            this.classList.add('antecipado');
+            bigBrain = { saldo: saldoAtual, diferenca: minPrev - minSaida };
+          } else {
+            detalhes.push('Saída: <strong>' + valor + '</strong> (previsto ' + config.saidaPrev + ')');
+            this.classList.add('divergente');
+            this.classList.remove('correto','antecipado');
+          }
+        } else if(campo === 'entrada' || campo === 'saida'){
+          this.classList.remove('divergente','antecipado');
+          this.classList.add('correto');
         }
-      } else if(campo === 'entrada' || campo === 'saida'){
-        this.classList.remove('divergente');
-        // Se a saída é igual ao previsto: marca correto. Se entrada é igual: marca correto.
-        this.classList.add('correto');
-        this.classList.remove('antecipado');
+      } else {
+        // Sábado: limpa qualquer estado de divergência/correção
+        this.classList.remove('divergente','correto','antecipado');
       }
 
       if(campo === 'voltaAlmoco' && $('saidaAlmoco').value){
@@ -1222,7 +1283,6 @@
       }
 
       if(bigBrain){
-        // Notificação especial (big brain) substitui a de horário fora do previsto
         if(!alertasMostrados[chave]){
           alertasMostrados[chave] = true;
           $('alertaSucesso').classList.add('oculto');
@@ -1294,6 +1354,8 @@
       const iso = $('data').value;
       if(!iso){ alert('Informe uma data.'); return; }
 
+      const ehSabadoNovo = isSabado(iso);
+
       const novoReg = {
         data: iso,
         entrada:     $('entrada').value     || null,
@@ -1303,7 +1365,9 @@
         folga:       $('folga').checked,
         esperado:    0
       };
-      novoReg.esperado = novoReg.folga ? 0 : config.jornada;
+      // Sábado → jornada exigida = 0 (tudo conta como banco de horas)
+      // Folga → 0. Demais → config.jornada
+      novoReg.esperado = novoReg.folga ? 0 : (ehSabadoNovo ? 0 : config.jornada);
 
       const algumTempo = ORDEM.some(c => novoReg[c]);
       if(!novoReg.folga && !algumTempo){
@@ -1315,16 +1379,26 @@
       editandoId = (registros.find(r => r.data === iso) || {}).id || null;
       render();
 
-      let extraNoDia = false, trab = 0, extra = 0;
+      // Hora extra: em dia útil é trab − jornada. Em sábado, é tudo.
+      let extraNoDia = false, trab = 0, extra = 0, sabadoBanco = 0;
       if(diaCompleto(novoReg) && !novoReg.folga){
         trab = trabalhadoMin(novoReg);
-        if(trab > config.jornada){ extra = trab - config.jornada; extraNoDia = true; }
+        if(ehSabadoNovo){
+          sabadoBanco = trab;
+          extraNoDia = trab > 0;
+        } else if(trab > config.jornada){
+          extra = trab - config.jornada;
+          extraNoDia = true;
+        }
       }
 
       const saldoTotal = calcularSaldoTotal();
       if(saldoTotal !== 0){
         let html = '';
-        if(extraNoDia){
+        if(sabadoBanco > 0){
+          html += 'Sábado trabalhado: <strong class="pos">+' + minParaHhmm(sabadoBanco) + '</strong> ' +
+                  'adicionadas ao banco de horas! 🎉<br><br>';
+        } else if(extraNoDia){
           html += 'Neste lançamento você trabalhou <strong>' + minParaHhmm(trab) + '</strong>, ' +
                   'ou seja <strong class="pos">+' + minParaHhmm(extra) + '</strong> de horas extras.<br><br>';
         }
@@ -1354,7 +1428,11 @@
   $('jornada').addEventListener('change', e => {
     if(!e.target.value){ e.target.value = minParaHhmm(config.jornada); return; }
     config.jornada = hhmmParaMin(e.target.value);
-    registros.forEach(r => { if(!r.folga) r.esperado = config.jornada; });
+    // Sábados ficam com esperado = 0, independentemente da jornada configurada
+    registros.forEach(r => {
+      if(r.folga){ r.esperado = 0; return; }
+      r.esperado = isSabado(r.data) ? 0 : config.jornada;
+    });
     try{ persistirComStatus(); }catch(err){ alert('Jornada NÃO foi salva: ' + err.message); }
     atualizarPrevisao(); render();
   });
@@ -1365,7 +1443,7 @@
     registros.forEach(r => {
       if(diaCompleto(r)){
         totalTrab += trabalhadoMin(r);
-        totalEsp  += (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+        totalEsp  += esperadoEfetivo(r);
         completos++;
       } else if(diaTemAlgo(r)) andamento++;
     });
@@ -1387,12 +1465,13 @@
       corpo.innerHTML = ordenados.map(r => {
         const completo = diaCompleto(r);
         const trab = trabalhadoMin(r);
-        const esp  = (typeof r.esperado === 'number') ? r.esperado : config.jornada;
+        const esp  = esperadoEfetivo(r);
         const s    = trab - esp;
         const cls  = !completo ? 'mut' : (s > 0 ? 'pos' : s < 0 ? 'neg' : '');
         const valOuTraco = v => v || '<span class="mut">—</span>';
         return '<tr class="clickable" data-editar="' + r.id + '">' +
           '<td>' + fmtData(r.data) +
+            (isSabado(r.data) ? '<span class="tag sabado">sábado</span>' : '') +
             (r.folga ? '<span class="tag">folga</span>' : '') +
             (!completo && diaTemAlgo(r) ? '<span class="tag andamento">parcial</span>' : '') + '</td>' +
           '<td>' + valOuTraco(r.entrada) + '</td>' +
@@ -1436,7 +1515,7 @@
   /* ---------------- Backup ---------------- */
   $('btnExportar').addEventListener('click', () => {
     const dados = {
-      app: 'banco-de-horas', versao: 13,
+      app: 'banco-de-horas', versao: 14,
       exportadoEm: new Date().toISOString(),
       config: config, registros: registros
     };
@@ -1463,6 +1542,11 @@
         if(!confirm('Isso substituirá os registros atuais pelos do arquivo. Continuar?')) return;
 
         registros = regs.filter(r => r && r.data).map(normalizarRegistro);
+        // Recalcula esperado respeitando sábados
+        registros.forEach(r => {
+          if(r.folga){ r.esperado = 0; return; }
+          r.esperado = isSabado(r.data) ? 0 : config.jornada;
+        });
         if(dados.config){
           config = {
             jornada: typeof dados.config.jornada === 'number' ? dados.config.jornada : config.jornada,
